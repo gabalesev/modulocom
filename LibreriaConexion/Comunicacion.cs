@@ -727,9 +727,7 @@ namespace LibreriaConexion
             string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
 
             Conexion cxn = new Conexion();
-
-            try
-            {
+            
                 string rdo = cxn.Leer_XMLprn(out nombre1, out nombre2, out nombre3, out port1, out  port2, out port3, out tel1, out tel2, out tel3, TransacManager.ProtoConfig.CONFIG);
                 string[] tel = new string[4];
 
@@ -765,8 +763,7 @@ namespace LibreriaConexion
                     }
 
                     pbk.Entries.Clear();
-                    //for (int i = 0; i <= tel.Length; i++)
-                    //{
+                    
                     try
                     {
                         entry = RasEntry.CreateDialUpEntry("BMTP Dial up", prefijo + separador + tel[0], device);
@@ -801,32 +798,24 @@ namespace LibreriaConexion
                             dialer.Options.DisableReconnect = false;
                             dialer.Options.SetModemSpeaker = true;
 
-                            dialer.Dial();
-                            //break;
+                            dialer.Dial();                            
                         }
                     }
                     catch (Exception e)
                     {
                         pbk.Entries.Clear();
                         LogBMTP.LogMessage(e.ToString(), lvlLogExcepciones, TimeStampLog);
-                        //if (i == tel.Length - 1)
-                        throw e;
-                    }
-                    //}
+                        
+                        cxnErr.CodError = (int)ErrComunicacion.CXN_TELEFONOex;
+                        cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación por telefono.";
+                        cxnErr.Estado = 0;
+                        LogBMTP.LogMessage("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
+                        LogBMTP.LogMessage("Excepción: " + e.ToString(), lvlLogExcepciones, TimeStampLog);
+                    }                    
                 }
 
                 return cxnErr;
-            }
-            catch (Exception ex)
-            {
-                cxnErr.CodError = (int)ErrComunicacion.CXN_TELEFONOex;
-                cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación por telefono.";
-                cxnErr.Estado = 0;
-                LogBMTP.LogMessage("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                LogBMTP.LogMessage("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
-
-                return cxnErr;
-            }
+            
 
         }
         public Error ConectarDialUp(Terminal ter)
@@ -1580,7 +1569,7 @@ namespace LibreriaConexion
                 TR.ordenAckE = 0;
                 TR.ordenMsgNackE = 0;
                 TransacManager.ProtoConfig.NACK_ENV = NackEnv.SINERROR;
-                //Comunicacion.dbg = debug;  
+
                 datosA.Tipo = TransacManager.ProtoConfig.BASE_CONFIG.TerminalModelo;
 
                 Enviar(ConstructorMenEnv.crearA_Logueo(datosA, UltimaConexionOptima, TransacManager.ProtoConfig.LOCAL_IP), EnumPaquete.DATOS, TR.ordenMsgNackE);                
@@ -1610,19 +1599,12 @@ namespace LibreriaConexion
 
                 if (objs == null || objs.Count == 0 )
                 {
-                    //if (Comunicacion.CONFIG.ConexionDefault == EnumModoConexion.RADIO && intentosEnviar < 3)
-                    //{
-                    //    intentosEnviar++;
-                    //    return InteraccionAB(ref datosA, interno);
-                    //}
-                    //else
                         throw new Exception("Lista de objetos(objs) regreso vacía de Recibir()"); 
                 }
                 else if (objs[0] is string)
                 {
                     Error err = MensajeNack(objs[0]);                    
                     objs.Insert(0, err);
-                    //objs.RemoveAt(1);
                 }
                 else if (objs[0].GetType() == typeof(Error) && ((Error)objs[0]).CodError != 0)
                 {
@@ -1689,8 +1671,6 @@ namespace LibreriaConexion
 
                 return objs;
             }
-
-            //Console.Read();//----------------------------------------------
         }
         public IList InteraccionPQ1(PedidosSorteos sort, UInt32 terminal, EnumEstadoParametrosOff estadoParametrosOff, string path = @"C:\BetmakerTP\Off")
         {            
