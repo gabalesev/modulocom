@@ -225,20 +225,6 @@ namespace Prueba1
                         {
                             Console.WriteLine("Seleccione el tipo de mensaje: ");
                             Console.WriteLine("(1) Quiniela");
-                            Console.WriteLine("(2) Loto");
-                            Console.WriteLine("(3) Quini6");
-                            Console.WriteLine("(4) Brinco");
-                            Console.WriteLine("(5) Combinada");
-                            Console.WriteLine("(6) Polla");
-                            Console.WriteLine("(7) Anulación");
-                            Console.WriteLine("(8) Reimpresión");
-                            Console.WriteLine("(9) Pago premio");
-                            Console.WriteLine("(t) Totales");
-                            Console.WriteLine("(r) Reportes");
-                            Console.WriteLine("(l) Lotipago // (m) Reimpresión Lotipago // (u) Pedido Último Pago");
-                            Console.WriteLine("(o) Mostrar Última Apuesta");
-                            Console.WriteLine("(s) Pide Habilitaciones de Subagencias");
-                            Console.WriteLine("(v) Modifica Habilitaciones de Subagencias");
                             Console.WriteLine("(x) Salir");
 
                             ConsoleKeyInfo messageType = Console.ReadKey();
@@ -247,7 +233,7 @@ namespace Prueba1
                             switch (messageType.KeyChar.ToString())
                             {
                                 case "1":
-                                    #region //QUINIELA
+                                    #region
                                     objsRec2 = com.InteraccionPQ1(PedidosSorteos.QUINIELA, Convert.ToUInt32(paqA.NumeroTerminal), EnumEstadoParametrosOff.HABILITADO);
                                     if (objsRec2.Count > 0 && objsRec2[0] != null && objsRec2[0] is Error)
                                     {
