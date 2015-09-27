@@ -35,13 +35,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LibreriaClases, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\LibreriaClases\LibreriaClases\bin\Debug\LibreriaClases.dll</HintPath>
+    <Reference Include="LibreriaClases">
+      <HintPath>C:\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\NLog.dll</HintPath>
+    <Reference Include="NLog">
+      <HintPath>C:\SERVICIOS\dlls\NLog.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

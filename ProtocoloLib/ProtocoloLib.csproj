@@ -35,21 +35,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BinConfig, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\BinConfig.dll</HintPath>
+    <Reference Include="BinConfig">
+      <HintPath>C:\SERVICIOS\dlls\BinConfig.dll</HintPath>
     </Reference>
-    <Reference Include="LibreriaClases, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
+    <Reference Include="LibreriaClases">
+      <HintPath>C:\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
-    <Reference Include="MonoLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
+    <Reference Include="MonoLibrary">
+      <HintPath>C:\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
     </Reference>
-    <Reference Include="SqlManager, Version=1.0.12.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\SqlManager.dll</HintPath>
+    <Reference Include="SqlManager">
+      <HintPath>C:\SERVICIOS\dlls\SqlManager.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

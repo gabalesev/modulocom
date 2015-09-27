@@ -43,30 +43,25 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BinConfig">
-      <HintPath>..\..\BetmakerTPTecnico\BinConfig\bin\Debug\BinConfig.dll</HintPath>
+      <HintPath>C:\SERVICIOS\dlls\BinConfig.dll</HintPath>
     </Reference>
-    <Reference Include="DotRas, Version=1.3.4750.30566, Culture=neutral, PublicKeyToken=c81a1ef59db87257, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\DotRas.dll</HintPath>
+    <Reference Include="DotRas">
+      <HintPath>C:\SERVICIOS\dlls\DotRas.dll</HintPath>
     </Reference>
-    <Reference Include="LibreriaClases, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
+    <Reference Include="LibreriaClases">
+      <HintPath>C:\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
     <Reference Include="LoggerLib">
-      <HintPath>..\..\LoggerLib\LoggerLib\bin\Debug\LoggerLib.dll</HintPath>
+      <HintPath>..\LoggerLib\bin\Debug\LoggerLib.dll</HintPath>
     </Reference>
-    <Reference Include="MonoLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
+    <Reference Include="MonoLibrary">
+      <HintPath>C:\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
     </Reference>
-    <Reference Include="ProtocoloLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="ProtocoloLib">
       <HintPath>..\ProtocoloLib\bin\Debug\ProtocoloLib.dll</HintPath>
     </Reference>
-    <Reference Include="SqlManager, Version=1.0.12.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\SqlManager.dll</HintPath>
+    <Reference Include="SqlManager">
+      <HintPath>C:\SERVICIOS\dlls\SqlManager.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
