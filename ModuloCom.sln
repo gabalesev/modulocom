@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prueba4", "Prueba4\Prueba4.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtocoloLib", "ProtocoloLib\ProtocoloLib.csproj", "{B049192A-0AC8-4C35-9EBD-9609C16A61F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerLib", "..\..\..\..\..\Proyecto\BMTP2016\Desarrollo\Librerias\LoggerLib\LoggerLib\LoggerLib.csproj", "{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerLib", "LoggerLib\LoggerLib.csproj", "{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
