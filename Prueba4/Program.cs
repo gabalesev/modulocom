@@ -3,15 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using LibreriaConexion;
 using System.Collections;
-using System.Net.NetworkInformation;
 using LibreriaClases.Clases;
 using LibreriaClases;
-using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Linq;
 using BinConfig;
 using System.Net;
-using Certificar;
-using ProtocoloLib;
 using LoggerLib;
 
 namespace Prueba1
@@ -33,7 +29,7 @@ namespace Prueba1
         static void Main(string[] args)
         {
             
-            Certificado certifica = new Certificado();
+            //Certificado certifica = new Certificado();
             //UnitTest1 ut = new UnitTest1();
             BaseConfig bc = new BaseConfig();
 
@@ -279,7 +275,7 @@ namespace Prueba1
                                                     else if (objsRec3[1] is TransacQuinielaH)
                                                     {
                                                         TransacQuinielaH transRta = (TransacQuinielaH)objsRec3[1];
-                                                        certifica.CertificadoQuiniela(transRta.Protocolo, bc.MAC, (int)paqA.Tarjeta, (int)paqA.NumeroTerminal, ref transRta.Certificado);
+                                                        //certifica.CertificadoQuiniela(transRta.Protocolo, bc.MAC, (int)paqA.Tarjeta, (int)paqA.NumeroTerminal, ref transRta.Certificado);
 
                                                         LogBMTP.LogBuffer(byteToChar(transRta.Protocolo), "Test LoggeLib", transRta.Protocolo.Length, EnumNivelLog.Trace);
 

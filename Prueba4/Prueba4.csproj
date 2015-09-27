@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Bond.CSharp.3.0.6\build\Bond.CSharp.props" Condition="Exists('..\packages\Bond.CSharp.3.0.6\build\Bond.CSharp.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -11,7 +11,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Prueba4</RootNamespace>
     <AssemblyName>Prueba4</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -49,23 +49,11 @@
   <ItemGroup>
     <Reference Include="BinConfig, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\BetmakerTPTecnico\BinConfig\obj\Debug\BinConfig.dll</HintPath>
-    </Reference>
-    <Reference Include="Bond">
-      <HintPath>..\packages\Bond.Runtime.CSharp.3.0.6\lib\net45\Bond.dll</HintPath>
-    </Reference>
-    <Reference Include="Bond.Attributes">
-      <HintPath>..\packages\Bond.Runtime.CSharp.3.0.6\lib\net45\Bond.Attributes.dll</HintPath>
-    </Reference>
-    <Reference Include="Bond.IO">
-      <HintPath>..\packages\Bond.Runtime.CSharp.3.0.6\lib\net45\Bond.IO.dll</HintPath>
-    </Reference>
-    <Reference Include="Bond.JSON">
-      <HintPath>..\packages\Bond.Runtime.CSharp.3.0.6\lib\net45\Bond.JSON.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\BinConfig.dll</HintPath>
     </Reference>
     <Reference Include="LibreriaClases, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\LibreriaClases\LibreriaClases\bin\Debug\LibreriaClases.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
     <Reference Include="LibreriaConexion">
       <HintPath>..\LibreriaConexion\bin\Debug\LibreriaConexion.dll</HintPath>
@@ -73,10 +61,6 @@
     <Reference Include="LoggerLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\LoggerLib\LoggerLib\bin\Debug\LoggerLib.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\PruebaMono\MonoLibrary\bin\Debug\MonoLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

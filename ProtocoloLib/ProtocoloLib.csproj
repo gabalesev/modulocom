@@ -9,12 +9,13 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ProtocoloLib</RootNamespace>
     <AssemblyName>ProtocoloLib</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,20 +35,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BinConfig">
-      <HintPath>..\..\BetmakerTPTecnico\BinConfig\bin\Debug\BinConfig.dll</HintPath>
+    <Reference Include="BinConfig, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\BinConfig.dll</HintPath>
     </Reference>
-    <Reference Include="DotRas">
-      <HintPath>..\..\..\..\LibreriasExternas\DotRas\NET20\WIN2K\DotRas.dll</HintPath>
+    <Reference Include="LibreriaClases, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
-    <Reference Include="LibreriaClases">
-      <HintPath>..\..\LibreriaClases\LibreriaClases\bin\Debug\LibreriaClases.dll</HintPath>
+    <Reference Include="MonoLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
     </Reference>
-    <Reference Include="MonoLibrary">
-      <HintPath>..\..\PruebaMono\MonoLibrary\bin\Debug\MonoLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="SqlManager">
-      <HintPath>..\..\SqlManager\SqlManager\bin\Debug\SqlManager.dll</HintPath>
+    <Reference Include="SqlManager, Version=1.0.12.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\SqlManager.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

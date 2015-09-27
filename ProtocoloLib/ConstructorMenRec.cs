@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using MonoLibrary;
-using Certificar;
 using System.Collections;
 using LibreriaClases;
 using LibreriaClases.Clases;
-using BinConfig;
-using SqlManager;
 
 namespace ProtocoloLib
 {
@@ -249,11 +244,9 @@ namespace ProtocoloLib
                 transaccRta.TipoTransacc = (byte)Conversiones.AgregaDigito(byteRec, 1); //Tipo de transacción
 
                  
-                transaccRta.id_transacc = Convert.ToUInt32(Conversiones.AgregaCadena(byteRec, 4, 18)); //Id ticket
+                transaccRta.id_transacc = Convert.ToUInt32(Conversiones.AgregaCadena(byteRec, 4, 18)); //Id ticket                
 
-                Transformar conv = new Transformar();
-
-                transaccRta.id_ticket = conv.GenerateTicketIdst((transaccRta.id_transacc));
+                transaccRta.id_ticket = Transformar.GenerateTicketIdst((transaccRta.id_transacc));
 
                 transaccRta.Timehost = new DateTime(Conversiones.AgregaDigito16(byteRec, 24), Conversiones.AgregaDigito(byteRec, 23),
                     Conversiones.AgregaDigito(byteRec, 22), Conversiones.AgregaDigito(byteRec, 26), Conversiones.AgregaDigito(byteRec, 27),

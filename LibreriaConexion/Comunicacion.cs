@@ -1,27 +1,21 @@
 ﻿using System;
-using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Permissions;
 using System.Net.NetworkInformation;
-using MonoLibrary;
 using System.Collections;
 using System.Collections.Generic;
 using LibreriaClases.Clases;
 using LibreriaClases;
 using BinConfig;
-using SqlManager;
-using System.IO;
 using System.IO.Ports;
 using DotRas;
 using System.Linq;
-using System.Collections.ObjectModel;
-using System.Threading;
 using ProtocoloLib;
 using LoggerLib;
 
 namespace LibreriaConexion
-{    
+{
     public class Comunicacion
     {
         public OperaOffLine opOff = new OperaOffLine();
