@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreriaConexion", "LibreriaConexion\LibreriaConexion.csproj", "{FC6385A6-4581-4799-B862-0575D36A0E0B}"
 EndProject
@@ -9,22 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prueba4", "Prueba4\Prueba4.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtocoloLib", "ProtocoloLib\ProtocoloLib.csproj", "{B049192A-0AC8-4C35-9EBD-9609C16A61F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerLib", "..\..\..\..\..\Proyecto\BMTP2016\Desarrollo\Librerias\LoggerLib\LoggerLib\LoggerLib.csproj", "{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}"
+EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 4
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = http://gdm02:8080/tfs/mendoza
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = LibreriaConexion\\LibreriaConexion.csproj
-		SccProjectName1 = LibreriaConexion
-		SccLocalPath1 = LibreriaConexion
-		SccProjectUniqueName2 = Prueba4\\Prueba4.csproj
-		SccProjectName2 = Prueba4
-		SccLocalPath2 = Prueba4
-		SccProjectUniqueName3 = ProtocoloLib\\ProtocoloLib.csproj
-		SccProjectName3 = ProtocoloLib
-		SccLocalPath3 = ProtocoloLib
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -64,6 +51,18 @@ Global
 		{B049192A-0AC8-4C35-9EBD-9609C16A61F0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{B049192A-0AC8-4C35-9EBD-9609C16A61F0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{B049192A-0AC8-4C35-9EBD-9609C16A61F0}.Release|x86.ActiveCfg = Release|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Debug|x86.Build.0 = Debug|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Release|x86.ActiveCfg = Release|Any CPU
+		{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
