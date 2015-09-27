@@ -57,7 +57,7 @@ namespace LibreriaConexion
 
             DateTime d = DateTime.Now;
 
-            conf.LogFileName = conf.LogFileName.Split('.')[0]
+            string fName = conf.LogFileName.Split('.')[0]
                 + d.Year.ToString().PadLeft(2, '0')
                 + d.Month.ToString().PadLeft(2, '0')
                 + d.Day.ToString().PadLeft(2, '0')
@@ -65,9 +65,9 @@ namespace LibreriaConexion
                 + d.Minute.ToString().PadLeft(2, '0')
                 + d.Second.ToString().PadLeft(2, '0')
                 + "." + conf.LogFileName.Split('.')[1];
-            
 
-            LogBMTP.InicializaLog(conf, NivelLog);
+
+            LogBMTP.InicializaLog(conf, NivelLog, fName);
 
             TR = new TransacManager();
         }
@@ -84,7 +84,7 @@ namespace LibreriaConexion
 
             DateTime d = DateTime.Now;
 
-            conf.LogFileName = conf.LogFileName.Split('.')[0]
+            string fName = conf.LogFileName.Split('.')[0]
                 + d.Year.ToString().PadLeft(2, '0')
                 + d.Month.ToString().PadLeft(2, '0')
                 + d.Day.ToString().PadLeft(2, '0')
@@ -93,7 +93,7 @@ namespace LibreriaConexion
                 + d.Second.ToString().PadLeft(2, '0')
                 + "." + conf.LogFileName.Split('.')[1];
 
-            LogBMTP.InicializaLog(conf, NivelLog);
+            LogBMTP.InicializaLog(conf, NivelLog, fName);
 
             TR = new TransacManager();
         }

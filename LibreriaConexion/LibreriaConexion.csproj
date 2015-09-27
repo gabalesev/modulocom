@@ -53,8 +53,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
-    <Reference Include="LoggerLib">
-      <HintPath>..\..\LoggerLib\LoggerLib\bin\Debug\LoggerLib.dll</HintPath>
+    <Reference Include="LoggerLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\LoggerLib\bin\Debug\LoggerLib.dll</HintPath>
     </Reference>
     <Reference Include="MonoLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
