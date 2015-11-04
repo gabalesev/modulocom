@@ -28,12 +28,7 @@ namespace Prueba1
 
         static void Main(string[] args)
         {
-            
-            //Certificado certifica = new Certificado();
-            //UnitTest1 ut = new UnitTest1();
             BaseConfig bc = new BaseConfig();
-
-            
 
             #region //Prueba de QUINIELA 
 
@@ -63,7 +58,6 @@ namespace Prueba1
             try
             {
                 Opera opera = new Opera();
-                //string archivo = "C:\\BetmakerTP\\Config.Bin";
                 ArchivoConfig lee = new ArchivoConfig();                
                 
                 Errorof errConfig = opera.LeeArchivo(ref lee);
@@ -121,20 +115,17 @@ namespace Prueba1
                     #endregion
 
                     //opera.GeneraArchivo(archivo, lee);
-                }
-
-                LogBMTP.InicializaLog(lee, EnumNivelLog.Trace);                
-                
+                }             
 
                 #region //Prueba de paquete A
                 Terminal paqA = new Terminal();
-                var entrada = bc;// new BaseConfig();
-                //var salida = bc.LeeBaseConfig(ref entrada);
+                var entrada = new BaseConfig();
+                var salida = bc.LeeBaseConfig(ref entrada);
 
-                if (false/*salida.CodError != 0*/)
+                if (salida.CodError != 0)
                 {                    
-                    //Exception ex = new Exception(salida.Descripcion);
-                    //throw ex;
+                    Exception ex = new Exception(salida.Descripcion);
+                    throw ex;
                 }
                 else
                 {
@@ -328,178 +319,6 @@ namespace Prueba1
             {
                 Console.WriteLine("Exception: {0}", e.ToString());
             }
-        }
-
-        public static void Print(byte[] buffer, int margenIzq)
-        {
-            string sEsc = "\x1b";
-            string sGS = "\x1d";
-            string escSalto = sEsc + "d" + "\x01";
-            string asciiSalto = "\r";
-            string escLetraGrande = sEsc + "!\x68";
-            string asciiLetraGrande = Char.ConvertFromUtf32(18);
-            string asciiFinLetraGrande = Char.ConvertFromUtf32(17);
-            string asciiCodBarra = Char.ConvertFromUtf32(20);
-            string escFinLetraGrande = sEsc + "!\0";
-            string escCortePapel = sEsc + "i";
-            string sgsAlturaCodBarras = sGS + "h28";
-            string sgsCodBarra = "    " + sgsAlturaCodBarras + sGS + "k" + "\x46" + "\x16";
-            string nombreImpresora = "THERMAL Receipt Printer";
-
-            string stringText = System.Text.Encoding.UTF8.GetString(buffer);
-            string[] arrayText = stringText.Select(c => c.ToString()).ToArray();
-
-            StringBuilder copiaText = new StringBuilder();
-
-            // Inicializa impresora
-            RawPrinterHelper.SendStringToPrinter(nombreImpresora, sEsc + "@");
-
-            // Agrega la cancelacion de letra grande al final de cada linea
-            bool agregaFinLetraGrande = false;
-
-            // Margen izquierdo
-            for (int i = 0; i < margenIzq; i++)
-            {
-                copiaText.Append(" ");
-            }
-
-            foreach (string caracter in arrayText)
-            {
-                copiaText.Append(caracter);
-
-                // Comienzo negrita
-                if (caracter == asciiLetraGrande)
-                {
-                    agregaFinLetraGrande = true;
-                }
-                else if (caracter == asciiSalto && agregaFinLetraGrande)
-                {
-                    copiaText.Append(asciiFinLetraGrande);
-                    agregaFinLetraGrande = false;
-                }
-
-                // Margen izquierdo
-                if (caracter == asciiSalto)
-                {
-                    for (int i = 0; i < margenIzq; i++)
-                    {
-                        copiaText.Append(" ");
-                    }
-                }
-            }
-
-            // Agrega saltos de linea al final
-            for (int i = 0; i < 6; i++) copiaText.Append(asciiSalto);
-
-
-            // Vuelve a convertir el texto a un array
-            stringText = copiaText.ToString();
-            arrayText = stringText.Select(c => c.ToString()).ToArray();
-
-            // Salto de linea 
-            arrayText = arrayText.Select(s => s.Replace(asciiSalto, escSalto)).ToArray();
-
-            // Letra grande
-            arrayText = arrayText.Select(s => s.Replace(asciiLetraGrande, escLetraGrande)).ToArray();
-
-            // Fin letra grande
-            arrayText = arrayText.Select(s => s.Replace(asciiFinLetraGrande, escFinLetraGrande)).ToArray();
-
-            // Codigo de Barras
-            arrayText = arrayText.Select(s => s.Replace(asciiCodBarra, sgsCodBarra)).ToArray();
-
-            stringText = ConvertStringArrayToString(arrayText);
-
-            // Imprime reporte
-            RawPrinterHelper.SendStringToPrinter(nombreImpresora, stringText);
-
-            CortarPapel(nombreImpresora);
-
-            // Inicializa impresora
-            RawPrinterHelper.SendStringToPrinter(nombreImpresora, sEsc + "@");
-        }
-
-        static string ConvertStringArrayToString(string[] array)
-        {
-            //
-            // Concatenate all the elements into a StringBuilder.
-            //
-            StringBuilder builder = new StringBuilder();
-            foreach (string value in array)
-            {
-                builder.Append(value);
-            }
-            return builder.ToString();
-        }
-
-        public static void CortarPapel(string nombreImpresora)
-        {
-            string ESC = "\x1b";
-            string cut = ESC + "i";
-            RawPrinterHelper.SendStringToPrinter(nombreImpresora, cut);
-        }
-
-        public static void WriteMultiLineByteArray(byte[] bytes, string name)
-        {
-            //if (dbg == "debug")
-            //{
-                const int rowSize = 16;
-                const string underLine = "--------------------------------";
-                int iter;
-
-                Console.WriteLine(name);
-                Console.WriteLine(underLine.Substring(0,
-                    Math.Min(name.Length, underLine.Length)));
-
-                for (iter = 0; iter < bytes.Length - rowSize; iter += rowSize)
-                {
-                    Console.Write(BitConverter.ToString(bytes, iter, rowSize));
-                    Console.WriteLine("-");
-                }
-
-                Console.WriteLine(BitConverter.ToString(bytes, iter));
-                Console.WriteLine();
-            //}
-        }
-
-        public static void WriteMultiLineByteArray(IList objs, string name)
-        {
-            //if (dbg == "debug")
-            //{
-                const string underLine = "---------------------------------";
-
-                Console.WriteLine(name);
-                Console.WriteLine(underLine.Substring(0,
-                    Math.Min(name.Length, underLine.Length)));
-
-                foreach (Object ob in objs)
-                {
-                    if (ob is Array && ob is char[])
-                    {
-                        char[] arr = (char[])ob;
-                        for (int k = 0; k < arr.Length; k++)
-                        {
-                            Console.Write(arr[k]);
-                            Console.Write("-");
-                        }
-                    }
-                    else if (ob is Array && ob is int[])
-                    {
-                        int[] arr = (int[])ob;
-                        for (int k = 0; k < arr.Length; k++)
-                        {
-                            Console.Write(arr[k]);
-                            Console.Write("-");
-                        }
-                    }
-                    else if (!(ob is byte[]))
-                    {
-                        Console.Write(ob);
-                        Console.WriteLine("-");
-                    }
-                }
-                Console.WriteLine();
-            //}
         }
     }
 }
