@@ -9,6 +9,7 @@ using System.Linq;
 using BinConfig;
 using System.Net;
 using LoggerLib;
+using System.Net.Sockets;
 
 namespace Prueba1
 {
@@ -61,61 +62,38 @@ namespace Prueba1
                 ArchivoConfig lee = new ArchivoConfig();                
                 
                 Errorof errConfig = opera.LeeArchivo(ref lee);
-                Error errBConfig = bc.LeeBaseConfig(ref bc);
-
                 if (errConfig.Error != 0)
                 {
-                    lee = new ArchivoConfig();
+                    Console.WriteLine("Error al leer archivo de configuración.");
+                    Console.ReadLine();
+                }
+                else
+                {
+                    lee.Port = 20900;
+                    lee.MaskDesenmascara = new byte[] { 0x06, 0x07, 0x05 };
+                    lee.MaskEnmascara = new byte[] { 0x01, 0x03, 0xfc };
 
-                    #region //PARAMETROS CONFIGURACION PARA CONFIG
-                    bc.Terminal = 80732555;//1300000006;
-                    bc.Tarjeta = 19511;//50026;
-                    bc.TerminalModelo = EnumTerminalModelo.TML;
-                    bc.MAC = new byte[] { 0x15, 0xBE, 0x07, 0x91, 0xFD, 0x32, 0xA4, 0xB3 };//{ 0x8b, 0x3d, 0x39, 0xff, 0x6a, 0xdd, 0x16, 0xb8 };//{ 0x5e, 0x01, 0xd2, 0x69, 0x78, 0x8b, 0x7d, 0x02 }; { 0xa0, 0xca, 0x14, 0x1d, 0xba, 0xdf, 0x7b, 0x44 };
-                    bc.MsgMAC = new byte[] { 0x00, 0x91, 0x00, 0x07, 0x00, 0x32, 0xBE, 0xB3, 0x00, 0x15, 0xFD, 0xA4};
-                    //lee.EncryptMAC = mac;//new byte[] { 0x00 };
+                    IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
 
-                    lee.ImpresoraReportes = "impresoraPDF";
-                    lee.ImpresoraTicket = "THERMAL Receipt Printer";
+                    for (int i = 0; i < ipHostInfo.AddressList.Length; i++)
+                    {
+                        if (ipHostInfo.AddressList[i].AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            lee.DefaultServer = ipHostInfo.AddressList[i];
+                            break;
+                        }
+                    }
+                }
 
-                    lee.MaskEscape = 0xfc;
+                Error errBConfig = bc.LeeBaseConfig(ref bc);
+                bc.Tarjeta = 53772;
 
-                    //lee.MaskEnmascara = new byte[] { 0x01, 0x03, 0xfc };
-                    //lee.MaskDesenmascara = new byte[] { 0x06, 0x07, 0x05 };
+                if (errBConfig.CodError != 0)
+                {
+                    Console.WriteLine("Error al leer archivo base de configuración.");
+                    Console.ReadLine();
+                }
 
-                    lee.MaskEnmascara = new byte[] { 0x01, 0x03, 0x04, 0x10, 0x1e, 0x9e, 0xfc, 0x83, 0x84, 0x0d, 0x8d, 0x90, 0xff };
-                    lee.MaskDesenmascara = new byte[] { 0x06, 0x07, 0xdd, 0x0a, 0x09, 0x41, 0x05, 0xde, 0xdf, 0x15, 0x11, 0x0b, 0x08 };
-
-                    lee.LogPath = "C:\\BetmakerTP\\Logs\\";
-                    lee.LogFileName = "LogDisp.lg";
-                    lee.LogMaxFileSize = 10485760;
-                    lee.NumeringWithSecuential = false;
-                    lee.LevelLog = EnumMessageType.DEBUG;
-
-                    lee.IpTerminal = IPAddress.Parse("133.61.1.12");
-                    lee.IpMask = IPAddress.Parse("255.255.0.0");
-                    lee.DW = IPAddress.Parse("133.61.1.30");
-                    lee.DNS = IPAddress.Parse("133.61.1.194");
-
-                    lee.PathPRN = "C:\\BetmakerTP\\Conexion\\";
-                    lee.ArchivoPRN = "ArchivoPRN.xml";
-                    lee.DefaultServer = IPAddress.Parse("133.61.1.71");
-                    lee.Host = "Win7x86";
-                    lee.Port = 9950; //MENDOZA
-                    lee.Telefono = "08006665807";
-
-                    lee.PCName = "PCjorge";
-
-                    lee.FTPServer = IPAddress.Parse("133.61.1.195");
-                    lee.FTPport = 21;
-                    lee.FTPUser = "pruebaftp";
-                    lee.FTPPassword = "pruebaftp";
-                    lee.FTPWorkingDirectory = "Reportes";
-
-                    #endregion
-
-                    //opera.GeneraArchivo(archivo, lee);
-                }             
 
                 #region //Prueba de paquete A
                 Terminal paqA = new Terminal();
@@ -159,6 +137,7 @@ namespace Prueba1
 
                 //Error errCxn = Comunicacion.AbrePuerto();
 
+
                 Error errCxn = com.Conectar(paqA, EnumModoConexion.ETHERNET);
                 Agente agente = new Agente();
                 if (errCxn.CodError != 0)
@@ -166,6 +145,7 @@ namespace Prueba1
                     Console.Write("Error: " + errCxn.CodError);
                     Console.WriteLine(" " + errCxn.Descripcion + "\n");
                     
+                    Console.Read();
                     Environment.Exit(0);
                 }
                 else

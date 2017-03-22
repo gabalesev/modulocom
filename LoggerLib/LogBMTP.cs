@@ -22,7 +22,7 @@ namespace LoggerLib
         private static bool NUMERING_WITH_SEQUENTIAL;//true;
         private static EnumNivelLog LEVEL_LOG;//EnumMessageType.DEBUG;
 
-       // private static FileInfo fi = null;
+        // private static FileInfo fi = null;
 
         private static FileTarget fileTargetM;
         private static ColoredConsoleTarget console;
@@ -65,7 +65,8 @@ namespace LoggerLib
 
             LoggingConfiguration confLog = new LoggingConfiguration();
 
-            console = new ColoredConsoleTarget { 
+            console = new ColoredConsoleTarget
+            {
                 Name = "console",
                 Layout = "${shortdate} ${level} ${message}"
             };
@@ -74,12 +75,12 @@ namespace LoggerLib
             {
                 FileName = BASE_DIR + FILE_NAME,
                 Layout = "${message}",
-                ArchiveAboveSize = MAX_SIZE_FILE,                
+                ArchiveAboveSize = MAX_SIZE_FILE,
                 ArchiveNumbering = ArchiveNumberingMode.Sequence
             };
 
             LogLevel lv = LogLevel.Off;
-            switch(LEVEL_LOG)
+            switch (LEVEL_LOG)
             {
                 case EnumNivelLog.Trace: lv = LogLevel.Trace; break;
                 case EnumNivelLog.Debug: lv = LogLevel.Debug; break;
@@ -88,7 +89,63 @@ namespace LoggerLib
                 case EnumNivelLog.Warn: lv = LogLevel.Warn; break;
                 case EnumNivelLog.Fatal: lv = LogLevel.Fatal; break;
             }
-            
+
+            logRuleConsole = new LoggingRule("*", lv, console);
+            logRuleFileM = new LoggingRule("*", lv, fileTargetM);
+
+            confLog.AddTarget("console", console);
+            confLog.AddTarget("fileM", fileTargetM);
+            confLog.LoggingRules.Add(logRuleConsole);
+            confLog.LoggingRules.Add(logRuleFileM);
+#if DEBUG
+            LogManager.ThrowExceptions = true;
+#endif
+            LogManager.Configuration = confLog;
+
+            logM += new LogMessageGenerator(LogMensaje);
+        }
+
+        public static void InicializaLog(EnumNivelLog lvlLog, string fileName, string tipo = "")
+        {
+            BASE_DIR = @"C:\Logs\";
+            MAX_SIZE_FILE = 512;
+            NUMERING_WITH_SEQUENTIAL = true;
+            LEVEL_LOG = lvlLog;
+            FILE_NAME = fileName;
+
+
+            if (!Directory.Exists(BASE_DIR))
+            {
+                Directory.CreateDirectory(BASE_DIR);
+            }
+
+            LoggingConfiguration confLog = new LoggingConfiguration();
+
+            console = new ColoredConsoleTarget
+            {
+                Name = "console",
+                Layout = "${shortdate} ${level} ${message}"
+            };
+
+            fileTargetM = new FileTarget
+            {
+                FileName = BASE_DIR + FILE_NAME,
+                Layout = "${message}",
+                ArchiveAboveSize = MAX_SIZE_FILE,
+                ArchiveNumbering = ArchiveNumberingMode.Sequence
+            };
+
+            LogLevel lv = LogLevel.Off;
+            switch (LEVEL_LOG)
+            {
+                case EnumNivelLog.Trace: lv = LogLevel.Trace; break;
+                case EnumNivelLog.Debug: lv = LogLevel.Debug; break;
+                case EnumNivelLog.Info: lv = LogLevel.Info; break;
+                case EnumNivelLog.Error: lv = LogLevel.Error; break;
+                case EnumNivelLog.Warn: lv = LogLevel.Warn; break;
+                case EnumNivelLog.Fatal: lv = LogLevel.Fatal; break;
+            }
+
             logRuleConsole = new NLog.Config.LoggingRule("*", lv, console);
             logRuleFileM = new NLog.Config.LoggingRule("*", lv, fileTargetM);
 
@@ -100,7 +157,7 @@ namespace LoggerLib
             LogManager.ThrowExceptions = true;
 #endif
             LogManager.Configuration = confLog;
-            
+
             logM += new LogMessageGenerator(LogMensaje);
         }
 
@@ -126,7 +183,7 @@ namespace LoggerLib
                     case EnumNivelLog.Error: lo.Error(message, logM); break;
                     case EnumNivelLog.Fatal: lo.Fatal(message, logM); break;
 
-                }              
+                }
             }
         }
 
@@ -141,7 +198,7 @@ namespace LoggerLib
             if (lenghtUsedBuffer > buffer.Length)
             {
                 //ERROR: Base de numeracion no valida.
-                LogMessage(string.Format("dump:Cantidad de buffer usado({0}) mayor que el tamaño del buffer({1}).\n", lenghtUsedBuffer, buffer.Length), EnumNivelLog.Error, false );
+                LogMessage(string.Format("dump:Cantidad de buffer usado({0}) mayor que el tamaño del buffer({1}).\n", lenghtUsedBuffer, buffer.Length), EnumNivelLog.Error, false);
                 return;
             }
             StringBuilder sb = new StringBuilder();
@@ -209,9 +266,9 @@ namespace LoggerLib
                     case 10:
                         oneLine += i.ToString().PadLeft(7, '0') + "0 | ";
                         break;
-                    /*case 8:
-                        oneLine += intToOct(i).PadLeft(7, '0') + "0 | ";
-                        break;*/
+                        /*case 8:
+                            oneLine += intToOct(i).PadLeft(7, '0') + "0 | ";
+                            break;*/
                 }
                 //Itero dentro de una linea en cada valor a loguear
                 for (int j = 0; j < numberBase; j++)
@@ -238,9 +295,9 @@ namespace LoggerLib
                             case 10:
                                 oneLine += string.Format("{0} ", Convert.ToByte(oneItemBuffer).ToString().PadLeft(3, '0'));
                                 break;
-                            /*case 8:
-                                oneLine += string.Format("{0} ", Convert.ToByte(oneItemBuffer).ToString().PadLeft(3, '0'));
-                                break;*/
+                                /*case 8:
+                                    oneLine += string.Format("{0} ", Convert.ToByte(oneItemBuffer).ToString().PadLeft(3, '0'));
+                                    break;*/
                         }
                     }
                 }
@@ -273,25 +330,25 @@ namespace LoggerLib
 
         public static void Test()
         {
-            Console.Out.WriteLine("Let's assume you're going to work, and using the bus to get there:");
+            Console.Out.WriteLine("Vamos a suponer que estamos yendo a trabjar y para ello utilizamos el transporte público:");
             Console.Out.WriteLine("------------------------------------------------------------------");
 
-            LogMessage("Trace: The chatter of people on the street", EnumNivelLog.Trace, true);
+            LogMessage("Trazar: La muchedumbre de gente en la calle.", EnumNivelLog.Trace, true);
             //lo.Trace("Trace: The chatter of people on the street");
-            LogMessage("Debug: Where are you going and why?", EnumNivelLog.Debug, true);
+            LogMessage("Depurar: ¿Hacia dónde nos dirijimos y porqué?", EnumNivelLog.Debug, true);
             //lo.Debug("Debug: Where are you going and why?");
-            LogMessage("Info: What bus station you're at.", EnumNivelLog.Info, true);
+            LogMessage("Info: ¿En qué estación de omnibus estamos?", EnumNivelLog.Info, true);
             //lo.Info("Info: What bus station you're at.");
-            LogMessage("Warn: You're playing on the phone and not looking up for your bus", EnumNivelLog.Warn, true);
+            LogMessage("Advertir: Estamos distraidos y no estamos mirando si viene el omnibus.", EnumNivelLog.Warn, true);
             //lo.Warn("Warn: You're playing on the phone and not looking up for your bus");
-            LogMessage("Error: You get on the wrong bus.", EnumNivelLog.Error, true);
+            LogMessage("Error: Subimos al autobus incorrecto.", EnumNivelLog.Error, true);
             //lo.Error("Error: You get on the wrong bus.");
-            LogMessage("Fatal: You are run over by the bus.", EnumNivelLog.Fatal, true);
+            LogMessage("Fatal: Nos atropeyó el omnibus.", EnumNivelLog.Fatal, true);
             //lo.Fatal("Fatal: You are run over by the bus.");
 
             Console.Out.WriteLine("");
-            Console.Out.WriteLine("Done logging.");
-            Console.Out.WriteLine("Hit any key to exit");
+            Console.Out.WriteLine("Registro finalizado.");
+            Console.Out.WriteLine("Presionar cualquier tecla para finalizar");
 
             Console.ReadKey();
         }

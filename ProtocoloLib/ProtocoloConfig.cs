@@ -22,7 +22,7 @@ namespace ProtocoloLib
 
         public const Int32 TamBufferReporte = 32000;
         public const Int32 TamBuffer = 1024;
-        public const Int32 TimeoutSocket = 4000;
+        public const Int32 TimeoutSocket = 8000;
         
         public SerialNumeroOff nroOff; 
 

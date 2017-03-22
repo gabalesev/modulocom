@@ -16,7 +16,7 @@ using LoggerLib;
 
 namespace LibreriaConexion
 {
-    public class Comunicacion
+    public class Comunicacion: IDisposable
     {
         public OperaOffLine opOff = new OperaOffLine();
 
@@ -322,13 +322,7 @@ namespace LibreriaConexion
                 int fusible = 0;
                 while (sale == false) // INTENTA HASTA CONECTAR CON PRN
                 {
-                    SocketPermission permission = new SocketPermission(PermissionState.Unrestricted
-                        //NetworkAccess.Connect,    // Connection permission
-                        //TransportType.Tcp,        // Defines transport types
-                        //"",                       // Gets the IP addresses
-                        //SocketPermission.AllPorts // All ports
-                        );
-                    //SocketPermissionAttribute per = new SocketPermissionAttribute(SecurityAction.
+                    SocketPermission permission = new SocketPermission(PermissionState.Unrestricted);
                     permission.Demand();
 
                     string res = cxn.Leer_XMLprn(out nombre1, out nombre2, out nombre3, out port1, out  port2, out port3, out tel1, out tel2, out tel3, TransacManager.ProtoConfig.CONFIG);
@@ -403,18 +397,14 @@ namespace LibreriaConexion
 
                         if (sender == null || sender.Connected != true)
                         {
-                            #region // FALLÓ PRN, INTENTA CON CONFIG.BIN
+                            #region // FALLÓ PRN, INTENTA CON VALORES DEFAULT
                             cxn.Borrar_XMLprn(TransacManager.ProtoConfig.CONFIG);
 
                             try
                             {
-                                if (!PuertoDisponible(localEndPoint.Port))
+                                while (!PuertoDisponible(localEndPoint.Port))
                                 {
-
-                                    cxnErr.CodError = (int)ErrComunicacion.CXN_SOCKET;
-                                    cxnErr.Descripcion = "Error de conexión. Puerto default ocupado.";
-                                    cxnErr.Estado = 0;
-                                    return cxnErr;
+                                    localEndPoint.Port++;
                                 }
 
                                 ipAddr = TransacManager.ProtoConfig.CONFIG.DefaultServer;
@@ -422,9 +412,9 @@ namespace LibreriaConexion
                                 ipEndPoint = new IPEndPoint(ipAddr, TransacManager.ProtoConfig.CONFIG.Port);
 
                                 sender = new Socket(
-                                ipAddr.AddressFamily,// Specifies the addressing scheme
-                                SocketType.Stream,   // The type of socket 
-                                ProtocolType.Tcp     // Specifies the protocols 
+                                ipAddr.AddressFamily,// Asigno tipo de address 
+                                SocketType.Stream,   // Tipo de socket
+                                ProtocolType.Tcp     // Tipo de protocolo
                                 );
 
                                 sender.NoDelay = false;   // Using the Nagle algorithm                                                               
@@ -499,7 +489,7 @@ namespace LibreriaConexion
                             ipEndPoint = new IPEndPoint(ipAddr, TransacManager.ProtoConfig.CONFIG.Port);
 
                             sender = new Socket(
-                            ipAddr.AddressFamily,// Specifies the addressing scheme
+                            ipAddr.AddressFamily,// Asigno tipo de address de
                             SocketType.Stream,   // The type of socket 
                             ProtocolType.Tcp     // Specifies the protocols 
                             );
@@ -511,9 +501,7 @@ namespace LibreriaConexion
 
                             sender.Bind(localEndPoint);
 
-                            sender.Connect(ipEndPoint);
-
-                            //sender.Send(DataConverter.Pack("^$8", "Holaaaaaaaaa <EOF>"));
+                            sender.Connect(ipEndPoint);                            
                         }
                         catch (Exception e)
                         {
@@ -1550,11 +1538,7 @@ namespace LibreriaConexion
         #endregion
 
         #region TRANSACCIONES
-        public IList InteraccionAB(ref Terminal datosA)
-        {
-            return InteraccionAB(ref datosA, false);
-        }
-        public IList InteraccionAB(ref Terminal datosA, bool interno)
+        public IList InteraccionAB(ref Terminal datosA, bool interno = false)
         {   
             Conexion cxn = new Conexion();
             IList objs = new List<object>();            
@@ -2272,5 +2256,10 @@ namespace LibreriaConexion
             return true;
         }
         #endregion
+
+        public void Dispose()
+        {
+            sender.Dispose();
+        }
     }    
 }

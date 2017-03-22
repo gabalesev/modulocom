@@ -47,25 +47,12 @@ namespace ProtocoloLib
             ushort rescrc;
 
             Array.Copy(bytes, buffer, longitud);
-
-            //Program.WriteMultiLineByteArray(buffer, "Agrega Ceros");
-
-            //Array.Copy(BitConverter.GetBytes(numpaq), 0, buffer, 2, 2);
-
-            //Esto pasa a resolverse en Empaquetar
-            /*
-            buffer[2] = (byte)(numpaq >> 8);
-            buffer[3] = (byte)(numpaq & 0x00ff);
-
-            Program.WriteMultiLineByteArray(buffer, "Cambio Nro Paq");
-            */
+            
             rescrc = ComputeChecksum(buffer);
 
             buffer[longitud] = (byte)(rescrc >> 8);
 
             buffer[longitud + 1] = (byte)(rescrc & 0x00ff);
-
-            //Program.WriteMultiLineByteArray(buffer, "Crc");
 
             return buffer;
         }

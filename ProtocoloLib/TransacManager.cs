@@ -61,17 +61,18 @@ namespace ProtocoloLib
                 if (Err.CodError != 0)
                     return Err;
 
-                aEnviar3 = crc.AddCrcToBuffer(aEnviar2, aEnviar2.Length);
+                //aEnviar3 = crc.AddCrcToBuffer(aEnviar2, aEnviar2.Length);
                 longi = 0;
 
-                entrada = new byte[aEnviar3.Length + 1];
-                entrada = aEnviar3;
-                Array.Resize(ref entrada, aEnviar3.Length + 1);
-                entrada[aEnviar3.Length] = 0x03;
+                // entrada no se usa, para que estaba esto??
+                //entrada = new byte[aEnviar3.Length + 1]; 
+                //entrada = aEnviar3;
+                //Array.Resize(ref entrada, aEnviar3.Length + 1);
+                //entrada[aEnviar3.Length] = 0x03;
 
-                enmask.Enmascara(aEnviar3, aEnviar3.Length, ref salida, ref longi);
-                salida[longi] = 0x03;
-                longi++;
+                enmask.Enmascara(aEnviar2, aEnviar2.Length, ref salida, ref longi);
+                //salida[longi] = Empaquetador.;
+                //longi++;
                 Array.Resize(ref salida, longi);
             }
             else // envio NACK con el tipo de error (TransacManager.ProtoConfig.NACK_ENV)

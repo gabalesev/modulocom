@@ -74,6 +74,14 @@ namespace ProtocoloLib
 
             for (int i = 1; i < longent; i++)
             {
+                if(i == longent - 1)
+                {
+                    salida[j] = entrada[i];
+                    longsal++;
+                    break;
+                }
+
+
                 int index = buscaEnArr(mask, entrada[i]);
 
                 if (index < 0)
