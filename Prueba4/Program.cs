@@ -29,6 +29,8 @@ namespace Prueba1
 
         static void Main(string[] args)
         {
+            Console.Beep();
+
             BaseConfig bc = new BaseConfig();
 
             #region //Prueba de QUINIELA 
@@ -248,7 +250,7 @@ namespace Prueba1
                                                         TransacQuinielaH transRta = (TransacQuinielaH)objsRec3[1];
                                                         //certifica.CertificadoQuiniela(transRta.Protocolo, bc.MAC, (int)paqA.Tarjeta, (int)paqA.NumeroTerminal, ref transRta.Certificado);
 
-                                                        LogBMTP.LogBuffer(byteToChar(transRta.Protocolo), "Test LoggeLib", transRta.Protocolo.Length, EnumNivelLog.Trace);
+                                                        LogBMTP.LogBuffer(transRta.Protocolo, "Test LoggeLib", transRta.Protocolo.Length, EnumNivelLog.Trace);
 
                                                         Console.WriteLine("Número de apuesta de QUINIELA: " + transRta.id_ticket + "\n");
                                                         Console.WriteLine("Número de certificado: " + transRta.Certificado + "\n");

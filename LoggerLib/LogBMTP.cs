@@ -3,84 +3,65 @@ using NLog;
 using NLog.Config;
 using NLog.Targets;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace LoggerLib
 {
     public static class LogBMTP
     {
         private static readonly Logger lo = LogManager.GetCurrentClassLogger();
-        private static LogMessageGenerator logM;
 
-        private static string BASE_DIR;//"C:\\TMLW\\LOGS\\";
-        private static string FILE_NAME;//"SocketTCP.lg";
-        private static int MAX_SIZE_FILE; // 512; //10MB
-        private static bool NUMERING_WITH_SEQUENTIAL;//true;
-        private static EnumNivelLog LEVEL_LOG;//EnumMessageType.DEBUG;
+        private static string DIRECTORIO_BASE;
+        private static string NOMBRE_ARCHIVO;
+        private static int LONGITUD_MAXIMA_ARCHIVO;
+        private static EnumNivelLog NIVEL_DE_REGISTRO;
 
-        // private static FileInfo fi = null;
+        private static FileTarget archivoDeRegistro;
+        private static ColoredConsoleTarget consolaDeRegistro;
+        private static LoggingRule reglaConsola;
+        private static LoggingRule reglaArchivo;
 
-        private static FileTarget fileTargetM;
-        private static ColoredConsoleTarget console;
-        private static LoggingRule logRuleConsole;
-        private static LoggingRule logRuleFileM;
-
-        #region Constantes
-        private const string HEADER_16 = "Offset   | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  | 0123456789ABCDEF";
-        private const string HEADER_10 = "Offset   |  0   1   2   3   4   5   6   7   8   9  | 0123456789";
-        private const string HEADER_08 = "Offset   |  0   1   2   3   4   5   6   7  | 01234567";
-        private const string F_LAYOUT_MENSAJE = "{message}";
-        private const string F_LAYOUT_BUFFER = "";
-        private const char HEADER_LINE = '=';
-
-        private const string BaseDir = "BaseDir";
-        private const string FileName = "FileName";
-        private const string MaxSizeFile = "MaxSizeFile";
-        private const string NumeringWithSequential = "NumeringWithSequential";
-        private const string LevelLog = "LevelLog";
-        #endregion
+        private const string ENCABEZADO_16 = "Offset   | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  | 0123456789ABCDEF";
+        private const char ENCABEZADO_LINEA = '=';
+        private const int BASE_HEXA = 16;
 
         public static void InicializaLog(ArchivoConfig lee, EnumNivelLog lvlLog, string fileName, string tipo = "")
         {
             try
             {
-                BASE_DIR = lee.LogPath;
-                MAX_SIZE_FILE = lee.LogMaxFileSize;
-                NUMERING_WITH_SEQUENTIAL = lee.NumeringWithSecuential;
-                LEVEL_LOG = lvlLog; //(LogLevel)lee.LevelLog;
-                FILE_NAME = fileName;
+                DIRECTORIO_BASE = lee.LogPath;
+                LONGITUD_MAXIMA_ARCHIVO = lee.LogMaxFileSize;
+                NIVEL_DE_REGISTRO = lvlLog; //(LogLevel)lee.LevelLog;
+                NOMBRE_ARCHIVO = fileName;
             }
             catch
             {
             }
 
-            if (!Directory.Exists(BASE_DIR))
+            if (!Directory.Exists(DIRECTORIO_BASE))
             {
-                Directory.CreateDirectory(BASE_DIR);
+                Directory.CreateDirectory(DIRECTORIO_BASE);
             }
 
             LoggingConfiguration confLog = new LoggingConfiguration();
 
-            console = new ColoredConsoleTarget
+            consolaDeRegistro = new ColoredConsoleTarget
             {
                 Name = "console",
                 Layout = "${shortdate} ${level} ${message}"
             };
 
-            fileTargetM = new FileTarget
+            archivoDeRegistro = new FileTarget
             {
-                FileName = BASE_DIR + FILE_NAME,
+                FileName = DIRECTORIO_BASE + NOMBRE_ARCHIVO,
                 Layout = "${message}",
-                ArchiveAboveSize = MAX_SIZE_FILE,
+                ArchiveAboveSize = LONGITUD_MAXIMA_ARCHIVO,
                 ArchiveNumbering = ArchiveNumberingMode.Sequence
             };
 
             LogLevel lv = LogLevel.Off;
-            switch (LEVEL_LOG)
+            switch (NIVEL_DE_REGISTRO)
             {
                 case EnumNivelLog.Trace: lv = LogLevel.Trace; break;
                 case EnumNivelLog.Debug: lv = LogLevel.Debug; break;
@@ -90,53 +71,49 @@ namespace LoggerLib
                 case EnumNivelLog.Fatal: lv = LogLevel.Fatal; break;
             }
 
-            logRuleConsole = new LoggingRule("*", lv, console);
-            logRuleFileM = new LoggingRule("*", lv, fileTargetM);
+            reglaConsola = new LoggingRule("*", lv, consolaDeRegistro);
+            reglaArchivo = new LoggingRule("*", lv, archivoDeRegistro);
 
-            confLog.AddTarget("console", console);
-            confLog.AddTarget("fileM", fileTargetM);
-            confLog.LoggingRules.Add(logRuleConsole);
-            confLog.LoggingRules.Add(logRuleFileM);
+            confLog.AddTarget("console", consolaDeRegistro);
+            confLog.AddTarget("fileM", archivoDeRegistro);
+            confLog.LoggingRules.Add(reglaConsola);
+            confLog.LoggingRules.Add(reglaArchivo);
 #if DEBUG
             LogManager.ThrowExceptions = true;
 #endif
             LogManager.Configuration = confLog;
-
-            logM += new LogMessageGenerator(LogMensaje);
         }
 
         public static void InicializaLog(EnumNivelLog lvlLog, string fileName, string tipo = "")
         {
-            BASE_DIR = @"C:\Logs\";
-            MAX_SIZE_FILE = 512;
-            NUMERING_WITH_SEQUENTIAL = true;
-            LEVEL_LOG = lvlLog;
-            FILE_NAME = fileName;
+            DIRECTORIO_BASE = @"C:\Logs\";
+            LONGITUD_MAXIMA_ARCHIVO = 512;
+            NIVEL_DE_REGISTRO = lvlLog;
+            NOMBRE_ARCHIVO = fileName;
 
-
-            if (!Directory.Exists(BASE_DIR))
+            if (!Directory.Exists(DIRECTORIO_BASE))
             {
-                Directory.CreateDirectory(BASE_DIR);
+                Directory.CreateDirectory(DIRECTORIO_BASE);
             }
 
             LoggingConfiguration confLog = new LoggingConfiguration();
 
-            console = new ColoredConsoleTarget
+            consolaDeRegistro = new ColoredConsoleTarget
             {
                 Name = "console",
                 Layout = "${shortdate} ${level} ${message}"
             };
 
-            fileTargetM = new FileTarget
+            archivoDeRegistro = new FileTarget
             {
-                FileName = BASE_DIR + FILE_NAME,
+                FileName = DIRECTORIO_BASE + NOMBRE_ARCHIVO,
                 Layout = "${message}",
-                ArchiveAboveSize = MAX_SIZE_FILE,
+                ArchiveAboveSize = LONGITUD_MAXIMA_ARCHIVO,
                 ArchiveNumbering = ArchiveNumberingMode.Sequence
             };
 
             LogLevel lv = LogLevel.Off;
-            switch (LEVEL_LOG)
+            switch (NIVEL_DE_REGISTRO)
             {
                 case EnumNivelLog.Trace: lv = LogLevel.Trace; break;
                 case EnumNivelLog.Debug: lv = LogLevel.Debug; break;
@@ -146,22 +123,19 @@ namespace LoggerLib
                 case EnumNivelLog.Fatal: lv = LogLevel.Fatal; break;
             }
 
-            logRuleConsole = new NLog.Config.LoggingRule("*", lv, console);
-            logRuleFileM = new NLog.Config.LoggingRule("*", lv, fileTargetM);
+            reglaConsola = new NLog.Config.LoggingRule("*", lv, consolaDeRegistro);
+            reglaArchivo = new NLog.Config.LoggingRule("*", lv, archivoDeRegistro);
 
-            confLog.AddTarget("console", console);
-            confLog.AddTarget("fileM", fileTargetM);
-            confLog.LoggingRules.Add(logRuleConsole);
-            confLog.LoggingRules.Add(logRuleFileM);
+            confLog.AddTarget("console", consolaDeRegistro);
+            confLog.AddTarget("fileM", archivoDeRegistro);
+            confLog.LoggingRules.Add(reglaConsola);
+            confLog.LoggingRules.Add(reglaArchivo);
 #if DEBUG
             LogManager.ThrowExceptions = true;
 #endif
             LogManager.Configuration = confLog;
-
-            logM += new LogMessageGenerator(LogMensaje);
         }
 
-        private static string LogMensaje() => "LogMessageGenerator Handler";
         public static void LogMessage(string message, EnumNivelLog messageType, bool withTimeStamp)
         {
             if (withTimeStamp)
@@ -172,38 +146,48 @@ namespace LoggerLib
             LogManager.Configuration.Reload();
 
             // Logueo solo si el nivel de log del mensaje es mayor o igual al configurado
-            if (messageType >= LEVEL_LOG)
+            if (messageType >= NIVEL_DE_REGISTRO)
             {
-                switch (LEVEL_LOG)
+                switch (NIVEL_DE_REGISTRO)
                 {
-                    case EnumNivelLog.Trace: lo.Trace(message, logM); break;
-                    case EnumNivelLog.Debug: lo.Debug(message, logM); break;
-                    case EnumNivelLog.Info: lo.Info(message, logM); break;
-                    case EnumNivelLog.Warn: lo.Warn(message, logM); break;
-                    case EnumNivelLog.Error: lo.Error(message, logM); break;
-                    case EnumNivelLog.Fatal: lo.Fatal(message, logM); break;
+                    case EnumNivelLog.Trace: lo.Trace(message); break;
+                    case EnumNivelLog.Debug: lo.Debug(message); break;
+                    case EnumNivelLog.Info: lo.Info(message); break;
+                    case EnumNivelLog.Warn: lo.Warn(message); break;
+                    case EnumNivelLog.Error: lo.Error(message); break;
+                    case EnumNivelLog.Fatal: lo.Fatal(message); break;
 
                 }
             }
         }
 
-        public static void LogBuffer(char[] buffer, string title, int lenghtUsedBuffer, EnumNivelLog nivelLog, int numberBase = 16)
+        /// <summary>
+        /// Registra un buffer de datos        
+        /// </summary>
+        /// <param name="buffer">Contenido principal</param>
+        /// <param name="titulo">Titulo que </param>
+        /// <param name="longitudBufferUsado">Longitud del buffer</param>
+        /// <param name="nivelLog">Nivel del registrador</param>
+        public static void LogBuffer(byte[] bufferInBytes, string titulo, int longitudBufferUsado, EnumNivelLog nivelLog)
         {
-            if (LEVEL_LOG.Equals(EnumMessageType.NOTHING))
+            var buffer = byteToChar(bufferInBytes);
+
+            if (NIVEL_DE_REGISTRO.Equals(EnumNivelLog.Off))
             {
                 // Esta configurado para no loguear nada
                 return;
             }
 
-            if (lenghtUsedBuffer > buffer.Length)
+            if (longitudBufferUsado > buffer.Length)
             {
-                //ERROR: Base de numeracion no valida.
-                LogMessage(string.Format("dump:Cantidad de buffer usado({0}) mayor que el tamaño del buffer({1}).\n", lenghtUsedBuffer, buffer.Length), EnumNivelLog.Error, false);
+                //ERROR: longitud no valida.
+                LogMessage(string.Format("dump:Cantidad de buffer usado({0}) mayor que el tamaño del buffer({1}).\n", longitudBufferUsado, buffer.Length), EnumNivelLog.Error, false);
                 return;
             }
             StringBuilder sb = new StringBuilder();
-            //Logueo Title
-            sb.AppendLine(title);
+
+            //Registro título
+            sb.AppendLine(titulo);
 
             string lineaDoble = string.Empty;
             string logRegistryNumber = string.Empty;
@@ -213,43 +197,30 @@ namespace LoggerLib
             char oneItemBuffer = ' ';
             char[] numberToHexa = new char[16] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
-            switch (numberBase)
+            switch (BASE_HEXA)
             {
                 case 16:
                     //Logueo HEADER_16
-                    sb.AppendLine(HEADER_16);
+                    sb.AppendLine(ENCABEZADO_16);
 
                     //Logueo linea doble
-                    sb.AppendLine(lineaDoble.PadLeft(HEADER_16.Length, HEADER_LINE));
+                    sb.AppendLine(lineaDoble.PadLeft(ENCABEZADO_16.Length, ENCABEZADO_LINEA));
                     break;
-                case 10:
-                    //Logueo HEADER_10
-                    sb.AppendLine(HEADER_10);
 
-                    //Logueo linea doble
-                    sb.AppendLine(lineaDoble.PadLeft(HEADER_10.Length, HEADER_LINE));
-                    break;
-                /*case 8:
-                    //Logueo HEADER_08
-                    sb.AppendLine(HEADER_08);
-
-                    //Logueo linea doble
-                    sb.AppendLine(lineaDoble.PadLeft(HEADER_08.Length, HEADER_LINE));
-                    break;*/
                 default:
                     //ERROR: Base de numeracion no valida.
-                    LogMessage(string.Format("dump:base={0} inválida.\n", numberBase), EnumNivelLog.Error, false);
+                    LogMessage(string.Format("dump:base={0} inválida.\n", BASE_HEXA), EnumNivelLog.Error, false);
                     return;
             }
             //Calculo cantidad de lineas que voy a tener que loguear
             int countLines;
-            if (lenghtUsedBuffer % numberBase == 0)
+            if (longitudBufferUsado % BASE_HEXA == 0)
             {
-                countLines = lenghtUsedBuffer / numberBase;
+                countLines = longitudBufferUsado / BASE_HEXA;
             }
             else
             {
-                countLines = (lenghtUsedBuffer / numberBase) + 1;
+                countLines = (longitudBufferUsado / BASE_HEXA) + 1;
             }
 
             //Itero en la cantidad de lineas
@@ -258,24 +229,14 @@ namespace LoggerLib
                 string oneLine = string.Empty;
 
                 //Logueo numero de registro: 
-                switch (numberBase)
-                {
-                    case 16:
-                        oneLine += intToHexa(i).PadLeft(7, '0') + "0 | ";
-                        break;
-                    case 10:
-                        oneLine += i.ToString().PadLeft(7, '0') + "0 | ";
-                        break;
-                        /*case 8:
-                            oneLine += intToOct(i).PadLeft(7, '0') + "0 | ";
-                            break;*/
-                }
+                oneLine += intToHexa(i).PadLeft(7, '0') + "0 | ";
+
                 //Itero dentro de una linea en cada valor a loguear
-                for (int j = 0; j < numberBase; j++)
+                for (int j = 0; j < BASE_HEXA; j++)
                 {
-                    if (i * numberBase + j >= lenghtUsedBuffer)
+                    if (i * BASE_HEXA + j >= longitudBufferUsado)
                     {
-                        if (numberBase == 16)
+                        if (BASE_HEXA == 16)
                         {
                             oneLine += loguerChar;
                         }
@@ -286,28 +247,20 @@ namespace LoggerLib
                     }
                     else
                     {
-                        oneItemBuffer = buffer[i * numberBase + j];
-                        switch (numberBase)
-                        {
-                            case 16:
-                                oneLine += numberToHexa[oneItemBuffer >> 4].ToString() + numberToHexa[oneItemBuffer & 0xf].ToString() + " ";
-                                break;
-                            case 10:
-                                oneLine += string.Format("{0} ", Convert.ToByte(oneItemBuffer).ToString().PadLeft(3, '0'));
-                                break;
-                                /*case 8:
-                                    oneLine += string.Format("{0} ", Convert.ToByte(oneItemBuffer).ToString().PadLeft(3, '0'));
-                                    break;*/
-                        }
+                        oneItemBuffer = buffer[i * BASE_HEXA + j];
+
+                        oneLine += numberToHexa[oneItemBuffer >> 4].ToString() + numberToHexa[oneItemBuffer & 0xf].ToString() + " ";
+                        break;
                     }
                 }
                 oneLine += "| ";
+
                 //Itero dentro de una linea en cada valor a loguear como Ascii
-                for (int j = 0; j < numberBase; j++)
+                for (int j = 0; j < BASE_HEXA; j++)
                 {
-                    if (i * numberBase + j < lenghtUsedBuffer)
+                    if (i * BASE_HEXA + j < longitudBufferUsado)
                     {
-                        oneItemBuffer = buffer[i * numberBase + j];
+                        oneItemBuffer = buffer[i * BASE_HEXA + j];
                         if (oneItemBuffer > 0x1f && oneItemBuffer < 0x7f)
                         {
                             oneLine += oneItemBuffer;
@@ -334,17 +287,11 @@ namespace LoggerLib
             Console.Out.WriteLine("------------------------------------------------------------------");
 
             LogMessage("Trazar: La muchedumbre de gente en la calle.", EnumNivelLog.Trace, true);
-            //lo.Trace("Trace: The chatter of people on the street");
             LogMessage("Depurar: ¿Hacia dónde nos dirijimos y porqué?", EnumNivelLog.Debug, true);
-            //lo.Debug("Debug: Where are you going and why?");
             LogMessage("Info: ¿En qué estación de omnibus estamos?", EnumNivelLog.Info, true);
-            //lo.Info("Info: What bus station you're at.");
             LogMessage("Advertir: Estamos distraidos y no estamos mirando si viene el omnibus.", EnumNivelLog.Warn, true);
-            //lo.Warn("Warn: You're playing on the phone and not looking up for your bus");
             LogMessage("Error: Subimos al autobus incorrecto.", EnumNivelLog.Error, true);
-            //lo.Error("Error: You get on the wrong bus.");
             LogMessage("Fatal: Nos atropeyó el omnibus.", EnumNivelLog.Fatal, true);
-            //lo.Fatal("Fatal: You are run over by the bus.");
 
             Console.Out.WriteLine("");
             Console.Out.WriteLine("Registro finalizado.");
@@ -353,8 +300,17 @@ namespace LoggerLib
             Console.ReadKey();
         }
 
+        // Conversiones
         private static string intToHexa(int decValue) => decValue.ToString("X");
-
-        private static int hexaToInt(string hexValue) => int.Parse(hexValue, System.Globalization.NumberStyles.HexNumber);
+                
+        private static char[] byteToChar(byte[] bytes)
+        {
+            char[] ch = new char[bytes.Length];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                ch[i] = (char)bytes[i];
+            }
+            return ch;
+        }        
     }
 }
