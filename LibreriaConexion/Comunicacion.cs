@@ -67,7 +67,7 @@ namespace LibreriaConexion
                 + "." + conf.LogFileName.Split('.')[1];
 
 
-            LogBMTP.InicializaLog(conf, NivelLog, fName);
+            ModuloDeRegistro.InicializaRegistrador(conf.LogPath, conf.LogMaxFileSize, NivelLog, fName);
 
             TR = new TransacManager();
         }
@@ -93,7 +93,7 @@ namespace LibreriaConexion
                 + d.Second.ToString().PadLeft(2, '0')
                 + "." + conf.LogFileName.Split('.')[1];
 
-            LogBMTP.InicializaLog(conf, NivelLog, fName);
+            ModuloDeRegistro.InicializaRegistrador(conf.LogPath, conf.LogMaxFileSize, NivelLog, fName);
 
             TR = new TransacManager();
         }
@@ -112,7 +112,7 @@ namespace LibreriaConexion
         {
             Error cxnErr = new Error();
 
-            LogBMTP.LogMessage("TERMINAL: " + ter.NumeroTerminal + " TARJETA: " + ter.Tarjeta, lvlLogCxn, TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("TERMINAL: " + ter.NumeroTerminal + " TARJETA: " + ter.Tarjeta, lvlLogCxn, TimeStampLog);
             //LogBMTP.LogMessage("TARJETA: " + ter.Tarjeta, CONFIG.LevelLog);
             //LogBMTP.LogMessage("(Level log: " + lvlLogCabeceraTransaccion, TimeStampLog.ToString() + ")", lvlLogCxn, TimeStampLog);          
 
@@ -122,8 +122,8 @@ namespace LibreriaConexion
                 TransacManager.ProtoConfig.TIPO_CXN = EnumModoConexion.DIALUP;
                 if (TransacManager.ProtoConfig.CONFIG.CxnOnlineHabilitado)
                 {
-                    LogBMTP.LogMessage("Modo de conexión: TELEFONO", lvlLogCxn, TimeStampLog);
-                    LogBMTP.LogMessage("(Timeout DialUp: " + TransacManager.ProtoConfig.CONFIG.CxnTelTimeout + ")", lvlLogCxn, TimeStampLog);                    
+                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: TELEFONO", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("(Timeout DialUp: " + TransacManager.ProtoConfig.CONFIG.CxnTelTimeout + ")", lvlLogCxn, TimeStampLog);                    
                     
                     cxnErr = AbrePuertoTelefono();
                     if (cxnErr.CodError != 0)
@@ -148,14 +148,14 @@ namespace LibreriaConexion
                 TransacManager.ProtoConfig.TIPO_CXN = EnumModoConexion.ETHERNET;
                 if (TransacManager.ProtoConfig.CON_CICLO_PRN)
                 {
-                    LogBMTP.LogMessage("Modo de conexión: ETHERNET", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: ETHERNET", lvlLogCxn, TimeStampLog);
                     cxnErr = Crea_PRN_Socket(ter);
                     if (cxnErr.CodError != 0)
                         return cxnErr;
                 }
                 else if (!TransacManager.ProtoConfig.CON_CICLO_PRN)
                 {
-                    LogBMTP.LogMessage("Modo de conexión: ETHERNET y TESTING", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: ETHERNET y TESTING", lvlLogCxn, TimeStampLog);
                     cxnErr = Crea_PRN_Socket_TEST(ter);
                     if (cxnErr.CodError != 0)
                         return cxnErr;
@@ -175,7 +175,7 @@ namespace LibreriaConexion
                 TransacManager.ProtoConfig.TIPO_CXN = EnumModoConexion.RADIO;
                 if (TransacManager.ProtoConfig.CONFIG.CxnOnlineHabilitado)
                 {
-                    LogBMTP.LogMessage("Modo de conexión: RADIO", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: RADIO", lvlLogCxn, TimeStampLog);
 
                     cxnErr = AbrePuertoRadio();
                     if (cxnErr.CodError != 0)
@@ -219,12 +219,12 @@ namespace LibreriaConexion
                             sender.Shutdown(SocketShutdown.Both);
                             sender.Close();// (SocketShutdown.Both);
                             if (!sender.Connected)
-                                LogBMTP.LogMessage("COMUNICACIÓN FINALIZADA POR TERMINAL", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR TERMINAL", lvlLogCxn, TimeStampLog);
                             else
-                                LogBMTP.LogMessage("ATENCIÓN: COMUNICACIÓN NO HA SIDO FINALIZADA", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("ATENCIÓN: COMUNICACIÓN NO HA SIDO FINALIZADA", lvlLogCxn, TimeStampLog);
                         }
                         else
-                            LogBMTP.LogMessage("COMUNICACIÓN FINALIZADA POR SERVICIO", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR SERVICIO", lvlLogCxn, TimeStampLog);
                     }
                     ICollection<RasConnection> conecciones = RasConnection.GetActiveConnections();
 
@@ -252,15 +252,15 @@ namespace LibreriaConexion
                             sender.Shutdown(SocketShutdown.Both);
                             sender.Close();// (SocketShutdown.Both);
                             if (!sender.Connected)
-                                LogBMTP.LogMessage("COMUNICACIÓN FINALIZADA POR TERMINAL", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR TERMINAL", lvlLogCxn, TimeStampLog);
                             else
-                                LogBMTP.LogMessage("ATENCIÓN: COMUNICACIÓN NO HA SIDO FINALIZADA", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("ATENCIÓN: COMUNICACIÓN NO HA SIDO FINALIZADA", lvlLogCxn, TimeStampLog);
                         }
                         else
                         {
                             sender.Close();// (SocketShutdown.Both);
 
-                            LogBMTP.LogMessage("COMUNICACIÓN FINALIZADA POR SERVICIO", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR SERVICIO", lvlLogCxn, TimeStampLog);
                         }
                     }
                     #endregion
@@ -348,7 +348,7 @@ namespace LibreriaConexion
                                         if (ipAddr.AddressFamily == AddressFamily.InterNetwork) break;
                                     }
 
-                                    LogBMTP.LogMessage("Resulve DNS: " + nom[j] + " - " + ipAddr, lvlLogCxn, TimeStampLog);
+                                    ModuloDeRegistro.RegistrarMensaje("Resulve DNS: " + nom[j] + " - " + ipAddr, lvlLogCxn, TimeStampLog);
 
                                     ipEndPoint = new IPEndPoint(ipAddr, Convert.ToInt32(por[j]));
 
@@ -371,7 +371,7 @@ namespace LibreriaConexion
                             catch (Exception e)
                             {
                                 ipHost = null;
-                                LogBMTP.LogMessage(" Intento con " + nom[j] + "(" + j + ") falló. \n" + e.Message + " " + e.InnerException, lvlLogDebug, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje(" Intento con " + nom[j] + "(" + j + ") falló. \n" + e.Message + " " + e.InnerException, lvlLogDebug, TimeStampLog);
                                 if (sender != null)
                                     sender.Close();
                             }
@@ -429,7 +429,7 @@ namespace LibreriaConexion
                             catch (Exception e)
                             {
                                 ipHost = null;
-                                LogBMTP.LogMessage(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
                             }
 
                             if (sender.Connected != true)
@@ -445,9 +445,9 @@ namespace LibreriaConexion
                                 UltimaConexionOptima[1] = TransacManager.ProtoConfig.CONFIG.Port.ToString();
                                 UltimaConexionOptima[2] = TransacManager.ProtoConfig.CONFIG.Telefono;
 
-                                LogBMTP.LogMessage("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
-                                LogBMTP.LogMessage("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                                LogBMTP.LogMessage("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
 
                                 Comunicacion cm = new Comunicacion(TransacManager.ProtoConfig.BASE_CONFIG, TransacManager.ProtoConfig.CONFIG, true);
                                 cm.sender = sender;
@@ -506,7 +506,7 @@ namespace LibreriaConexion
                         catch (Exception e)
                         {
                             ipHost = null;
-                            LogBMTP.LogMessage(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
                         }
                         if (sender.Connected != true)
                         {
@@ -521,9 +521,9 @@ namespace LibreriaConexion
                             UltimaConexionOptima[1] = TransacManager.ProtoConfig.CONFIG.Port.ToString();
                             UltimaConexionOptima[2] = TransacManager.ProtoConfig.CONFIG.Telefono;
 
-                            LogBMTP.LogMessage("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
-                            LogBMTP.LogMessage("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                            LogBMTP.LogMessage("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
 
                             if (TransacManager.ProtoConfig.CON_CICLO_PRN)
                             {
@@ -563,12 +563,12 @@ namespace LibreriaConexion
                 #endregion
 
                 if (cxnErr.CodError != 0)
-                    LogBMTP.LogMessage("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogCxn, TimeStampLog);
                 else
                 {
-                    LogBMTP.LogMessage("CONEXIÓN EXITOSA:\n ", lvlLogCxn, TimeStampLog);
-                    LogBMTP.LogMessage("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                    LogBMTP.LogMessage("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA:\n ", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
                 }
 
                 return cxnErr;
@@ -579,8 +579,8 @@ namespace LibreriaConexion
                 cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación.";
                 cxnErr.Estado = 0;
 
-                LogBMTP.LogMessage("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                LogBMTP.LogMessage("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
 
                 return cxnErr;
             }
@@ -643,7 +643,7 @@ namespace LibreriaConexion
                 catch (Exception e)
                 {
                     //   ipHost = null;
-                    LogBMTP.LogMessage(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
                 }
                 if (sender.Connected != true)
                 {
@@ -657,19 +657,19 @@ namespace LibreriaConexion
                     UltimaConexionOptima[1] = TransacManager.ProtoConfig.CONFIG.Port.ToString();
                     UltimaConexionOptima[2] = TransacManager.ProtoConfig.CONFIG.Telefono;
 
-                    LogBMTP.LogMessage("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
-                    LogBMTP.LogMessage("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                    LogBMTP.LogMessage("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
                 }
                 #endregion
 
                 if (cxnErr.CodError != 0)
-                    LogBMTP.LogMessage("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
                 else
                 {
-                    LogBMTP.LogMessage("CONEXIÓN EXITOSA:\n ", lvlLogCxn, TimeStampLog);
-                    LogBMTP.LogMessage("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                    LogBMTP.LogMessage("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA:\n ", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
                 }
 
                 return cxnErr;
@@ -680,8 +680,8 @@ namespace LibreriaConexion
                 cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación.";
                 cxnErr.Estado = 0;
 
-                LogBMTP.LogMessage("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                LogBMTP.LogMessage("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
 
                 return cxnErr;
             }
@@ -755,11 +755,11 @@ namespace LibreriaConexion
                             entry.AlternatePhoneNumbers.Add(prefijo + separador + tel[1]);
                             entry.AlternatePhoneNumbers.Add(prefijo + separador + tel[2]);
                             entry.AlternatePhoneNumbers.Add(prefijo + separador + telDefault);
-                            LogBMTP.LogMessage("Se leyó PRN. Telefonos alternativos cargados.", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("Se leyó PRN. Telefonos alternativos cargados.", lvlLogCxn, TimeStampLog);
                         }
                         else
                         {
-                            LogBMTP.LogMessage("No hay PRN. Intentará conectar con número telefónico por defecto.", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("No hay PRN. Intentará conectar con número telefónico por defecto.", lvlLogCxn, TimeStampLog);
                         }
 
                         //entry.Options.ModemLights = true;
@@ -786,13 +786,13 @@ namespace LibreriaConexion
                     catch (Exception e)
                     {
                         pbk.Entries.Clear();
-                        LogBMTP.LogMessage(e.ToString(), lvlLogExcepciones, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje(e.ToString(), lvlLogExcepciones, TimeStampLog);
                         
                         cxnErr.CodError = (int)ErrComunicacion.CXN_TELEFONOex;
                         cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación por telefono.";
                         cxnErr.Estado = 0;
-                        LogBMTP.LogMessage("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                        LogBMTP.LogMessage("Excepción: " + e.ToString(), lvlLogExcepciones, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Excepción: " + e.ToString(), lvlLogExcepciones, TimeStampLog);
                     }                    
                 }
 
@@ -805,7 +805,7 @@ namespace LibreriaConexion
             Error cxnErr = new Error();
 
             //pe = new Logger(TransacManager.ProtoConfig.CONFIG);
-            LogBMTP.LogMessage("${level} TERMINAL: " + ter.NumeroTerminal + " TARJETA: " + ter.Tarjeta, lvlLogCxn, TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("${level} TERMINAL: " + ter.NumeroTerminal + " TARJETA: " + ter.Tarjeta, lvlLogCxn, TimeStampLog);
             //LogBMTP.LogMessage("(Level log: " + lvlLogCabeceraTransaccion, TimeStampLog.ToString() + ")", lvlLogCxn, TimeStampLog);
 
             #region // Dial Up vía linea telefónica
@@ -843,8 +843,8 @@ namespace LibreriaConexion
                     portComDisponibles = portComDisponibles + st + " ";
                 }
 
-                LogBMTP.LogMessage(portComDisponibles, lvlLogDebug, TimeStampLog);
-                LogBMTP.LogMessage("Puerto para TELEFONO: " + "COM11", lvlLogDebug, TimeStampLog); //TODO puerto telefono
+                ModuloDeRegistro.RegistrarMensaje(portComDisponibles, lvlLogDebug, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Puerto para TELEFONO: " + "COM11", lvlLogDebug, TimeStampLog); //TODO puerto telefono
 
                 port1 = new SerialPort("COM11", 115200, (Parity)TransacManager.ProtoConfig.CONFIG.ParityRadio, TransacManager.ProtoConfig.CONFIG.DataBitsRadio, (StopBits)TransacManager.ProtoConfig.CONFIG.StopBitsRadio);
                 port1.ReadTimeout = TransacManager.ProtoConfig.CONFIG.ReadTimeOutRadio;
@@ -866,8 +866,8 @@ namespace LibreriaConexion
                 portErr.CodError = (int)ErrComunicacion.CONEX_SERIALex;
                 portErr.Descripcion = "Error de conexión. No puedo establecerse la comunicación.";
                 portErr.Estado = 0;
-                LogBMTP.LogMessage("Excepción: " + portErr.CodError + " " + portErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                LogBMTP.LogMessage("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + portErr.CodError + " " + portErr.Descripcion, lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
 
                 return portErr;
             }
@@ -879,8 +879,8 @@ namespace LibreriaConexion
             inputSerial = port1.ReadExisting();
 
             Error errTelefonoSerie = new Error();
-            LogBMTP.LogMessage("InputSerial Login -1: ", lvlLogDebug, TimeStampLog);
-            LogBMTP.LogMessage(inputSerial, lvlLogDebug, TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("InputSerial Login -1: ", lvlLogDebug, TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje(inputSerial, lvlLogDebug, TimeStampLog);
             while (!inputSerial.Contains("name") && inp < 15)
             {
                 inp++;
@@ -892,7 +892,7 @@ namespace LibreriaConexion
                 port1.Write("AT DT " + "11000" + tel0800 + "\r");
                 System.Threading.Thread.Sleep(39000); //EsperaPuertoSerie(port1, 9 + tel0800.Length);//200//400
 
-                LogBMTP.LogMessage("CDHolding: " + port1.CDHolding.ToString() + " CtsHolding: " + port1.CtsHolding.ToString(), lvlLogDebug, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("CDHolding: " + port1.CDHolding.ToString() + " CtsHolding: " + port1.CtsHolding.ToString(), lvlLogDebug, TimeStampLog);
                 if (port1.CDHolding && port1.CtsHolding)
                 {
                     inputSerial = port1.ReadExisting();
@@ -900,8 +900,8 @@ namespace LibreriaConexion
                     //port1.DtrEnable = true;
 
 
-                    LogBMTP.LogMessage("InputSerial Login " + inp + ": ", lvlLogDebug, TimeStampLog);
-                    LogBMTP.LogMessage(inputSerial, lvlLogDebug, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("InputSerial Login " + inp + ": ", lvlLogDebug, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje(inputSerial, lvlLogDebug, TimeStampLog);
 
                     if (inputSerial.Length > 30)
                         inputSerial = inputSerial.Substring(inputSerial.Length - 30);
@@ -909,7 +909,7 @@ namespace LibreriaConexion
                     errTelefonoSerie = LeeErrTelefonoSerie(inputSerial);
                     if (errTelefonoSerie.CodError != 0 && errTelefonoSerie.Descripcion != "SinRespuesta")
                     {
-                        LogBMTP.LogMessage("Error Telefono: intento de conexión " + inp + ": " + errTelefonoSerie.CodError + " - " + errTelefonoSerie.Descripcion, lvlLogError, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Error Telefono: intento de conexión " + inp + ": " + errTelefonoSerie.CodError + " - " + errTelefonoSerie.Descripcion, lvlLogError, TimeStampLog);
                         return false;
                     }
                 }
@@ -935,7 +935,7 @@ namespace LibreriaConexion
 
                 if (inputSerial.Contains("Connected"))
                 {
-                    LogBMTP.LogMessage("CONEXIÓN EXITOSA.", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA.", lvlLogCxn, TimeStampLog);
                     port1.DiscardInBuffer();
                     return true;
                 }
@@ -948,7 +948,7 @@ namespace LibreriaConexion
                     errTelefonoSerie = LeeErrTelefonoSerie(inputSerial);
                     if (errTelefonoSerie.CodError != 0 && errTelefonoSerie.Descripcion != "SinRespuesta")
                     {
-                        LogBMTP.LogMessage("Error Telefono: " + errTelefonoSerie.CodError + " - " + errTelefonoSerie.Descripcion, lvlLogError, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Error Telefono: " + errTelefonoSerie.CodError + " - " + errTelefonoSerie.Descripcion, lvlLogError, TimeStampLog);
                         return false;
                     }
                 }
@@ -974,8 +974,8 @@ namespace LibreriaConexion
                     portComDisponibles = portComDisponibles + st + " ";
                 }
 
-                LogBMTP.LogMessage(portComDisponibles, lvlLogDebug, TimeStampLog);
-                LogBMTP.LogMessage("Puerto para RADIO: " + TransacManager.ProtoConfig.CONFIG.NombrePuertoRadio, lvlLogDebug, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje(portComDisponibles, lvlLogDebug, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Puerto para RADIO: " + TransacManager.ProtoConfig.CONFIG.NombrePuertoRadio, lvlLogDebug, TimeStampLog);
 
                 port1 = new SerialPort(TransacManager.ProtoConfig.CONFIG.NombrePuertoRadio, TransacManager.ProtoConfig.CONFIG.BaudRateRadio, (Parity)TransacManager.ProtoConfig.CONFIG.ParityRadio, TransacManager.ProtoConfig.CONFIG.DataBitsRadio, (StopBits)TransacManager.ProtoConfig.CONFIG.StopBitsRadio);
                 port1.ReadTimeout = TransacManager.ProtoConfig.CONFIG.ReadTimeOutRadio;
@@ -996,8 +996,8 @@ namespace LibreriaConexion
                 portErr.CodError = (int)ErrComunicacion.CONEX_SERIALex;
                 portErr.Descripcion = "Error de conexión. No puedo establecerse la comunicación.";
                 portErr.Estado = 0;
-                LogBMTP.LogMessage("Excepción: " + portErr.CodError + " " + portErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                LogBMTP.LogMessage("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + portErr.CodError + " " + portErr.Descripcion, lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
 
                 return portErr;
             }
@@ -1009,14 +1009,14 @@ namespace LibreriaConexion
             inputSerial = port1.ReadExisting();
 
             string errRadio = "";
-            LogBMTP.LogMessage("InputSerial Login -1: ", lvlLogDebug, TimeStampLog);
-            LogBMTP.LogMessage(inputSerial, lvlLogDebug, TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("InputSerial Login -1: ", lvlLogDebug, TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje(inputSerial, lvlLogDebug, TimeStampLog);
             while (!inputSerial.Contains("name") && inp < 15)
             {
                 inp++;
                 port1.RtsEnable = false;
                 //port1.Write(new byte[]{0x0d}, 0,1);
-                LogBMTP.LogMessage("CDHolding: " + port1.CDHolding.ToString() + " CtsHolding: " + port1.CtsHolding.ToString(), lvlLogDebug, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("CDHolding: " + port1.CDHolding.ToString() + " CtsHolding: " + port1.CtsHolding.ToString(), lvlLogDebug, TimeStampLog);
                 if (port1.CDHolding && port1.CtsHolding)
                 {
                     //port1.RtsEnable = true;
@@ -1024,8 +1024,8 @@ namespace LibreriaConexion
                     port1.RtsEnable = true;
                     inputSerial = port1.ReadExisting();
 
-                    LogBMTP.LogMessage("InputSerial Login " + inp + ": ", lvlLogDebug, TimeStampLog);
-                    LogBMTP.LogMessage(inputSerial, lvlLogDebug, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("InputSerial Login " + inp + ": ", lvlLogDebug, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje(inputSerial, lvlLogDebug, TimeStampLog);
 
                     if (inputSerial.Length > 30)
                         inputSerial = inputSerial.Substring(inputSerial.Length - 30);
@@ -1033,7 +1033,7 @@ namespace LibreriaConexion
                     errRadio = LeeErrRadio(inputSerial);
                     if (errRadio != "SinError" && errRadio != "SinRespuesta")
                     {
-                        LogBMTP.LogMessage("Error radio " + inp + ": " + errRadio.ToString(), lvlLogDebug, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Error radio " + inp + ": " + errRadio.ToString(), lvlLogDebug, TimeStampLog);
                         return false;
                     }
                 }
@@ -1056,7 +1056,7 @@ namespace LibreriaConexion
 
                 if (inputSerial.Contains("Open"))
                 {
-                    LogBMTP.LogMessage("CONEXIÓN EXITOSA.", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA.", lvlLogCxn, TimeStampLog);
                     port1.DiscardInBuffer();
                     return true;
                 }
@@ -1111,8 +1111,8 @@ namespace LibreriaConexion
                             }
                             catch (Exception e)
                             {
-                                LogBMTP.LogMessage("RADIO: Excepción al intentar con PRN:Nombre " + j.ToString(), lvlLogCxn, TimeStampLog);
-                                LogBMTP.LogMessage(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("RADIO: Excepción al intentar con PRN:Nombre " + j.ToString(), lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
                             }
                             if (sale == true)
                             {
@@ -1122,7 +1122,7 @@ namespace LibreriaConexion
                                 break;
                             }
                             else
-                                LogBMTP.LogMessage("RADIO: Intento con PRN: Nombre " + nom[j] + " falló.", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("RADIO: Intento con PRN: Nombre " + nom[j] + " falló.", lvlLogCxn, TimeStampLog);
                         }
                         #endregion
 
@@ -1146,13 +1146,13 @@ namespace LibreriaConexion
                             }
                             catch (Exception e)
                             {
-                                LogBMTP.LogMessage("RADIO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
-                                LogBMTP.LogMessage(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("RADIO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
                             }
 
                             if (sale == false)
                             {
-                                LogBMTP.LogMessage("RADIO: Intento valores por defecto: Nombre " + TransacManager.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("RADIO: Intento valores por defecto: Nombre " + TransacManager.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
                                 cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
                                 cxnErr.Descripcion = "Error de conexión. No pudo establecerse una comunicación con los valores del PRN, ni los por defecto.";
                                 cxnErr.Estado = 0;
@@ -1212,13 +1212,13 @@ namespace LibreriaConexion
                         }
                         catch (Exception e)
                         {
-                            LogBMTP.LogMessage("RADIO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
-                            LogBMTP.LogMessage(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("RADIO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
                         }
 
                         if (sale == false)
                         {
-                            LogBMTP.LogMessage("RADIO: Intento valores por defecto: Nombre " + TransacManager.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("RADIO: Intento valores por defecto: Nombre " + TransacManager.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
                             cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
                             cxnErr.Descripcion = "Error de conexión. No pudo establecerse una comunicación con los valores del PRN, ni los por defecto.";
                             cxnErr.Estado = 0;
@@ -1280,7 +1280,7 @@ namespace LibreriaConexion
                 #endregion
 
                 if (cxnErr.CodError != 0)
-                    LogBMTP.LogMessage("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
 
                 return cxnErr;
             }
@@ -1290,8 +1290,8 @@ namespace LibreriaConexion
                 cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación.";
                 cxnErr.Estado = 0;
 
-                LogBMTP.LogMessage("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                LogBMTP.LogMessage("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
 
                 return cxnErr;
             }
@@ -1331,8 +1331,8 @@ namespace LibreriaConexion
                             }
                             catch (Exception e)
                             {
-                                LogBMTP.LogMessage("TELEFONO: Excepción al intentar con PRN:Nombre " + j.ToString(), lvlLogExcepciones, TimeStampLog);
-                                LogBMTP.LogMessage(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("TELEFONO: Excepción al intentar con PRN:Nombre " + j.ToString(), lvlLogExcepciones, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
                             }
                             if (sale == true)
                             {
@@ -1342,7 +1342,7 @@ namespace LibreriaConexion
                                 break;
                             }
                             else
-                                LogBMTP.LogMessage("TELEFONO: Intento con PRN: Nombre " + nom[j] + " falló.", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("TELEFONO: Intento con PRN: Nombre " + nom[j] + " falló.", lvlLogCxn, TimeStampLog);
                         }
                         #endregion
 
@@ -1366,13 +1366,13 @@ namespace LibreriaConexion
                             }
                             catch (Exception e)
                             {
-                                LogBMTP.LogMessage("TELEFONO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
-                                LogBMTP.LogMessage(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("TELEFONO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
                             }
 
                             if (sale == false)
                             {
-                                LogBMTP.LogMessage("TELEFONO: Intento valores por defecto: Nombre " + TransacManager.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("TELEFONO: Intento valores por defecto: Nombre " + TransacManager.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
                                 cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
                                 cxnErr.Descripcion = "Error de conexión. No pudo establecerse una comunicación con los valores del PRN, ni los por defecto.";
                                 cxnErr.Estado = 0;
@@ -1432,13 +1432,13 @@ namespace LibreriaConexion
                         }
                         catch (Exception e)
                         {
-                            LogBMTP.LogMessage("TELEFONO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
-                            LogBMTP.LogMessage(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("TELEFONO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
                         }
 
                         if (sale == false)
                         {
-                            LogBMTP.LogMessage("TELEFONO: Intento valores por defecto: Nombre " + TransacManager.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("TELEFONO: Intento valores por defecto: Nombre " + TransacManager.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
                             cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
                             cxnErr.Descripcion = "Error de conexión. No pudo establecerse una comunicación con los valores del PRN, ni los por defecto.";
                             cxnErr.Estado = 0;
@@ -1500,7 +1500,7 @@ namespace LibreriaConexion
                 #endregion
 
                 if (cxnErr.CodError != 0)
-                    LogBMTP.LogMessage("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
 
                 return cxnErr;
             }
@@ -1510,8 +1510,8 @@ namespace LibreriaConexion
                 cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación.";
                 cxnErr.Estado = 0;
 
-                LogBMTP.LogMessage("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                LogBMTP.LogMessage("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
 
                 return cxnErr;
             }
@@ -1545,9 +1545,9 @@ namespace LibreriaConexion
         public void Enviar(byte[] aEnviar, EnumPaquete tipo, ushort orden, int intentos = 0)
         {
             if (TransacManager.ProtoConfig.NACK_ENV == NackEnv.SINERROR)            
-                LogBMTP.LogBuffer(aEnviar, "Envia " + tipo.ToString() + " ( " + aEnviar.Length.ToString() + "b )", aEnviar.Length, lvlLogTransaccion);
+                ModuloDeRegistro.LogBuffer(aEnviar, "Envia " + tipo.ToString() + " ( " + aEnviar.Length.ToString() + "b )", aEnviar.Length, lvlLogTransaccion);
             else
-                LogBMTP.LogBuffer(aEnviar, "Envia NACK tipo " + TransacManager.ProtoConfig.NACK_ENV + " ( " + aEnviar.Length.ToString() + "b )", aEnviar.Length, lvlLogError);
+                ModuloDeRegistro.LogBuffer(aEnviar, "Envia NACK tipo " + TransacManager.ProtoConfig.NACK_ENV + " ( " + aEnviar.Length.ToString() + "b )", aEnviar.Length, lvlLogError);
 
             byte[] aEnviar4;
             Error Err = TR.Pack(aEnviar, out aEnviar4, tipo, orden);
@@ -1556,7 +1556,7 @@ namespace LibreriaConexion
 
 
             //if (NivelLog <= lvlLogDebug)
-                LogBMTP.LogBuffer(aEnviar4, "Enmascarado ( " + aEnviar4.Length.ToString() + "b )", aEnviar4.Length, lvlLogDebug);            
+                ModuloDeRegistro.LogBuffer(aEnviar4, "Enmascarado ( " + aEnviar4.Length.ToString() + "b )", aEnviar4.Length, lvlLogDebug);            
 
             if (!esPorPuertoSerie)
                 bytesCount = sender.Send(aEnviar4);
@@ -1625,14 +1625,14 @@ namespace LibreriaConexion
                         EsperaPuertoSerie(port1, port1.ReceivedBytesThreshold);
                         if (port1.DsrHolding == true)
                         {
-                            LogBMTP.LogMessage("Comienza a buscar 0x01", lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("Comienza a buscar 0x01", lvlLogDebug, TimeStampLog);
                             while (bytePuertoSerie != 0x01)
                             {
                                 bytePuertoSerie = Convert.ToByte(port1.ReadByte());
                                 if (bytePuertoSerie.ToString() == "%")
                                 {
                                     string msgEr = port1.ReadExisting();
-                                    LogBMTP.LogMessage(msgEr, lvlLogError, TimeStampLog);
+                                    ModuloDeRegistro.RegistrarMensaje(msgEr, lvlLogError, TimeStampLog);
                                     objMensaje.Insert(0, new Error("Ha ocurrido una falla en la conexión.", (uint)ErrComunicacion.CONEX_SERIAL, 0));
                                     return objMensaje;
                                 }
@@ -1641,10 +1641,10 @@ namespace LibreriaConexion
                                 con++;
                             }
 
-                            LogBMTP.LogMessage("Encuentra 0x01", lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("Encuentra 0x01", lvlLogDebug, TimeStampLog);
                             Array.Resize(ref bytepr, con);
                             if (bytepr.Length > 2 && NivelLog <= lvlLogDebug)
-                                LogBMTP.LogBuffer(bytepr, "Bytes de Radio ajenos al protocolo normal. Normalmente no viene nada.", bytepr.Length, lvlLogDebug);
+                                ModuloDeRegistro.LogBuffer(bytepr, "Bytes de Radio ajenos al protocolo normal. Normalmente no viene nada.", bytepr.Length, lvlLogDebug);
 
                             aRecibir = new byte[ProtocoloConfig.TamBuffer];
                             aRecibir[0] = bytePuertoSerie;
@@ -1662,7 +1662,7 @@ namespace LibreriaConexion
                                 aRecibir[con] = bytePuertoSerie;
                                 con++;
                             }
-                            LogBMTP.LogMessage("Encuentra 0x03", lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("Encuentra 0x03", lvlLogDebug, TimeStampLog);
                             Array.Resize(ref aRecibir, con);
                             //port1.RtsEnable = false;
                             port1.DiscardInBuffer();
@@ -1677,10 +1677,10 @@ namespace LibreriaConexion
                     catch (Exception e)
                     {
                         CierraPuertoSerie();
-                        LogBMTP.LogMessage("Vínculo telefónico caído. Restableciendo...", lvlLogTransaccion, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Vínculo telefónico caído. Restableciendo...", lvlLogTransaccion, TimeStampLog);
                         if (intentos < 3)
                         {
-                            LogBMTP.LogMessage("Reintento de conexión " + intentos.ToString(), lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("Reintento de conexión " + intentos.ToString(), lvlLogDebug, TimeStampLog);
 
                             Error erPort = AbrePuertoTelefono();
 
@@ -1692,13 +1692,13 @@ namespace LibreriaConexion
                                     return Recibir(new byte[ProtocoloConfig.TamBuffer], tipoEsperado, orden, tipoMen, intentos);
                                 }
                             }
-                            LogBMTP.LogMessage("Falló reintento " + intentos.ToString(), lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("Falló reintento " + intentos.ToString(), lvlLogDebug, TimeStampLog);
                             throw e;
                         }
                         else
                         {
                             Array.Resize(ref bytepr, con);
-                            LogBMTP.LogBuffer(bytepr, "Superados intentos. Esto se recibió: ", bytepr.Length, lvlLogDebug);
+                            ModuloDeRegistro.LogBuffer(bytepr, "Superados intentos. Esto se recibió: ", bytepr.Length, lvlLogDebug);
                             throw e;
                         }
                     }
@@ -1715,14 +1715,14 @@ namespace LibreriaConexion
                         EsperaPuertoSerie(port1, port1.ReceivedBytesThreshold);
                         //if (port1.DsrHolding == true && port1.CDHolding == true)
                         //{
-                        LogBMTP.LogMessage("Comienza a buscar 0x01", lvlLogDebug, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Comienza a buscar 0x01", lvlLogDebug, TimeStampLog);
                         while (bytePuertoSerie != 0x01)
                         {
                             bytePuertoSerie = Convert.ToByte(port1.ReadByte());
                             if (bytePuertoSerie.ToString() == "%")
                             {
                                 string msgEr = port1.ReadExisting();
-                                LogBMTP.LogMessage(msgEr, lvlLogError, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje(msgEr, lvlLogError, TimeStampLog);
                                 objMensaje.Insert(0, new Error("Ha ocurrido una falla en la conexión.", (uint)ErrComunicacion.CONEX_SERIAL, (uint)0));
                                 return objMensaje;
                             }
@@ -1731,10 +1731,10 @@ namespace LibreriaConexion
                             con++;
                         }
 
-                        LogBMTP.LogMessage("Encuentra 0x01", lvlLogDebug, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Encuentra 0x01", lvlLogDebug, TimeStampLog);
                         Array.Resize(ref bytepr, con);
                         if (bytepr.Length > 2 && NivelLog <= lvlLogDebug)
-                            LogBMTP.LogBuffer(bytepr, "Bytes de Radio ajenos al protocolo normal. Normalmente no viene nada.", bytepr.Length, lvlLogDebug);
+                            ModuloDeRegistro.LogBuffer(bytepr, "Bytes de Radio ajenos al protocolo normal. Normalmente no viene nada.", bytepr.Length, lvlLogDebug);
 
                         aRecibir = new byte[ProtocoloConfig.TamBuffer];
                         aRecibir[0] = bytePuertoSerie;
@@ -1752,7 +1752,7 @@ namespace LibreriaConexion
                             aRecibir[con] = bytePuertoSerie;
                             con++;
                         }
-                        LogBMTP.LogMessage("Encuentra 0x03", lvlLogDebug, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Encuentra 0x03", lvlLogDebug, TimeStampLog);
                         Array.Resize(ref aRecibir, con);
                         //port1.RtsEnable = false;
                         port1.DiscardInBuffer();
@@ -1769,10 +1769,10 @@ namespace LibreriaConexion
                         CierraPuertoSerie();
 
 
-                        LogBMTP.LogMessage("Vínculo de radio caído. Restableciendo...", lvlLogTransaccion, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Vínculo de radio caído. Restableciendo...", lvlLogTransaccion, TimeStampLog);
                         if (intentos < 3)
                         {
-                            LogBMTP.LogMessage("Reintento de conexión " + intentos.ToString(), lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("Reintento de conexión " + intentos.ToString(), lvlLogDebug, TimeStampLog);
 
                             Error erPort = AbrePuertoRadio();
 
@@ -1784,13 +1784,13 @@ namespace LibreriaConexion
                                     return Recibir(new byte[ProtocoloConfig.TamBuffer], tipoEsperado, orden, tipoMen, intentos);
                                 }
                             }
-                            LogBMTP.LogMessage("Falló reintento " + intentos.ToString(), lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("Falló reintento " + intentos.ToString(), lvlLogDebug, TimeStampLog);
                             throw e;
                         }
                         else
                         {
                             Array.Resize(ref bytepr, con);
-                            LogBMTP.LogBuffer(bytepr, "Bytes de Radio: fallaron " + intentos.ToString() + " intentos. Esto se recibió: ", bytepr.Length, lvlLogDebug);
+                            ModuloDeRegistro.LogBuffer(bytepr, "Bytes de Radio: fallaron " + intentos.ToString() + " intentos. Esto se recibió: ", bytepr.Length, lvlLogDebug);
                             throw e;
                         }
                     }
@@ -1799,7 +1799,7 @@ namespace LibreriaConexion
 
                 #region LOG ENMASCARADO                
                 //if (NivelLog <= lvlLogDebug)
-                    LogBMTP.LogBuffer(aRecibir, "Enmascarado ( " + aRecibir.Length.ToString() + "b )", aRecibir.Length, lvlLogDebug);
+                    ModuloDeRegistro.LogBuffer(aRecibir, "Enmascarado ( " + aRecibir.Length.ToString() + "b )", aRecibir.Length, lvlLogDebug);
                 #endregion
 
                 byte[] salidaUnpack;
@@ -1810,50 +1810,50 @@ namespace LibreriaConexion
                 #region LOGS SIN ENMASCARAR
                 if (Err.CodError != 0)
                 {
-                    LogBMTP.LogMessage(Err.Descripcion, lvlLogError, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje(Err.Descripcion, lvlLogError, TimeStampLog);
                     return new List<object>() { Err };
                 }
                 if (tipoEsperado == 4 && Empaquetador.tipoPaqRec == (byte)EnumPaquete.EOT)
                 {
-                    LogBMTP.LogMessage("Recibe EOT ", lvlLogTransaccion, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe EOT ", lvlLogTransaccion, TimeStampLog);
                     return objMensaje;
                 }
                 else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.EOT)
                 {
-                    LogBMTP.LogMessage("Recibe EOT INESPERADO en " + tipoMen, EnumNivelLog.Warn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe EOT INESPERADO en " + tipoMen, EnumNivelLog.Warn, TimeStampLog);
                     return objMensaje;
                 }
                 else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.NACK)
                 {
-                    LogBMTP.LogMessage("Recibe NACK causa " + objMensaje[0] + " en " + tipoMen, EnumNivelLog.Warn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe NACK causa " + objMensaje[0] + " en " + tipoMen, EnumNivelLog.Warn, TimeStampLog);
                     return objMensaje;
                 }
                 else if (tipoEsperado == 6 && Empaquetador.tipoPaqRec == (byte)EnumPaquete.ACK)
                 {
-                    LogBMTP.LogMessage("Recibe ACK ", lvlLogTransaccion, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe ACK ", lvlLogTransaccion, TimeStampLog);
                     return objMensaje;
                 }
                 else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.ACK)
                 {
-                    LogBMTP.LogMessage("Recibe ACK INESPERADO en " + tipoMen, EnumNivelLog.Warn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe ACK INESPERADO en " + tipoMen, EnumNivelLog.Warn, TimeStampLog);
                     return objMensaje;
                 }
 
-                LogBMTP.LogBuffer(salidaUnpack, "Recibe " + tipoMen.Substring(0, 1) + " ( " + salidaUnpack.Length.ToString() + "b )", salidaUnpack.Length, lvlLogTransaccion);
+                ModuloDeRegistro.LogBuffer(salidaUnpack, "Recibe " + tipoMen.Substring(0, 1) + " ( " + salidaUnpack.Length.ToString() + "b )", salidaUnpack.Length, lvlLogTransaccion);
 
                 #endregion
             }
             catch (SocketException es)
             {
                 //if (CONFIG.LevelLog == lvlLogExcepciones, TimeStampLog || CONFIG.LevelLog == EnumMessageType.DEBUG)
-                LogBMTP.LogMessage("Excepción de Socket en Recibir(): " + es.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción de Socket en Recibir(): " + es.ToString(), lvlLogExcepciones, TimeStampLog);
                 sender.Close();
                 objMensaje.Add(new Error("Se perdió el vínculo de conexión.", (uint)ErrComunicacion.CXN_SOCKETex, (uint)0));
             }
             catch (Exception ex)
             {
                 //if (CONFIG.LevelLog == EnumMessageType.ERROR || CONFIG.LevelLog == EnumMessageType.DEBUG)
-                LogBMTP.LogMessage("Excepción en Recibir(): " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción en Recibir(): " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
             }
             
             return objMensaje;            
@@ -1914,8 +1914,8 @@ namespace LibreriaConexion
             }
             else
                 errEx.Estado = 0;
-            LogBMTP.LogMessage("Excepción: " + errEx.CodError + " " + errEx.Descripcion, Comunicacion.lvlLogExcepciones, Comunicacion.TimeStampLog);
-            LogBMTP.LogMessage("Excepción: " + ex.ToString(), Comunicacion.lvlLogDebug, Comunicacion.TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("Excepción: " + errEx.CodError + " " + errEx.Descripcion, Comunicacion.lvlLogExcepciones, Comunicacion.TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), Comunicacion.lvlLogDebug, Comunicacion.TimeStampLog);
             return errEx;
         }
         #endregion
@@ -1931,7 +1931,7 @@ namespace LibreriaConexion
             if (by.ToString() == "%")
             {
                 string msgEr = port1.ReadExisting();
-                LogBMTP.LogMessage(msgEr, lvlLogError, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje(msgEr, lvlLogError, TimeStampLog);
                 objs.Add(new Error("Ha ocurrido una falla en la conexión.", (uint)ErrComunicacion.CONEX_SERIAL, (uint)0));
             }
             return by;
@@ -1962,7 +1962,7 @@ namespace LibreriaConexion
                 else
                 {
                     salida = inputStr.Substring(i);
-                    LogBMTP.LogMessage(salida, lvlLogError, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje(salida, lvlLogError, TimeStampLog);
                 }
             }
             else

@@ -116,8 +116,8 @@ namespace LibreriaConexion
                 err.Descripcion = "Ocurrió un error en la comunicación al intentar enviar credenciales."; //Definir que descripción pasar con Jorge
                 err.Estado = 0;
 
-                LogBMTP.LogMessage("Excepción: " + err.CodError + " " + err.Descripcion, lvlLogExcepciones, TimeStampLog);
-                LogBMTP.LogMessage("Excepción: " + ex.Message, lvlLogDebug, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + err.CodError + " " + err.Descripcion, lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.Message, lvlLogDebug, TimeStampLog);
 
                 objs.Insert(0, err);
                 if (objs.Count > 1)
@@ -130,7 +130,7 @@ namespace LibreriaConexion
         {
             try
             {
-                LogBMTP.LogMessage("Pedido de sorteo: " + sort + " Terminal: " + terminal, lvlLogTransaccion, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Pedido de sorteo: " + sort + " Terminal: " + terminal, lvlLogTransaccion, TimeStampLog);
 
                 Enviar(ConstructorMenEnv.crearP_PedidoSorteo((byte)sort, terminal), EnumPaquete.DATOS, TR.ordenMsgNackE);
 
@@ -143,7 +143,7 @@ namespace LibreriaConexion
 
                 do
                 {
-                    LogBMTP.LogMessage("Parametros " + sort, lvlLogTransaccion, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Parametros " + sort, lvlLogTransaccion, TimeStampLog);
                     objs = Recibir(bytes, (ushort)EnumPaquete.DATOS, 0, "Q1");
 
                     //atrapa errores de recepción
@@ -192,7 +192,7 @@ namespace LibreriaConexion
                     return objs;
                 }
 
-                LogBMTP.LogMessage("Transacción " + queJuego.ToString(), lvlLogTransaccion, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Transacción " + queJuego.ToString(), lvlLogTransaccion, TimeStampLog);
 
                 if (queJuego == PedidosSorteos.QUINIELA)
                 {
