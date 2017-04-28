@@ -11,8 +11,8 @@ using BinConfig;
 using System.IO.Ports;
 using DotRas;
 using System.Linq;
-using ProtocoloLib;
-using LoggerLib;
+using LibreriaProtocolo;
+using LibreriaRegistro;
 
 namespace LibreriaConexion
 {
@@ -30,14 +30,13 @@ namespace LibreriaConexion
         //tipo de paquete esperado
         public static EnumPaquete tipoPaq = EnumPaquete.DATOS;
 
-        #region Propiedades Logger
-        public EnumNivelLog NivelLog;
-        public const EnumNivelLog lvlLogTransaccion = EnumNivelLog.Info;
-        public const EnumNivelLog lvlLogCabeceraBuffer = EnumNivelLog.Info;
-        public const EnumNivelLog lvlLogCxn = EnumNivelLog.Info;
-        public const EnumNivelLog lvlLogError = EnumNivelLog.Error;
-        public const EnumNivelLog lvlLogExcepciones = EnumNivelLog.Fatal;
-        public const EnumNivelLog lvlLogDebug = EnumNivelLog.Debug;
+        #region Propiedades Logger        
+        public readonly NLog.LogLevel lvlLogTransaccion = NLog.LogLevel.Info;
+        public readonly NLog.LogLevel lvlLogCabeceraBuffer = NLog.LogLevel.Info;
+        public readonly NLog.LogLevel lvlLogCxn = NLog.LogLevel.Info;
+        public readonly NLog.LogLevel lvlLogError = NLog.LogLevel.Error;
+        public readonly NLog.LogLevel lvlLogExcepciones = NLog.LogLevel.Fatal;
+        public readonly NLog.LogLevel lvlLogDebug = NLog.LogLevel.Debug;
         public const bool TimeStampLog = true;
         #endregion
 
@@ -46,13 +45,15 @@ namespace LibreriaConexion
         {
             TransacManager.ProtoConfig = new ProtocoloConfig(baseConf, conf);
 
+            var NivelLog = NLog.LogLevel.Off;
+
             switch (TransacManager.ProtoConfig.CONFIG.LevelLog)
             {
-                case EnumMessageType.DEBUG: NivelLog = EnumNivelLog.Trace; break;
-                case EnumMessageType.ERROR: NivelLog = EnumNivelLog.Error; break;
-                case EnumMessageType.NORMAL: NivelLog = EnumNivelLog.Info; break;
-                case EnumMessageType.NOTHING: NivelLog = EnumNivelLog.Off; break;
-                case EnumMessageType.WARNING: NivelLog = EnumNivelLog.Warn; break;
+                case EnumMessageType.DEBUG: NivelLog = NLog.LogLevel.Trace; break;
+                case EnumMessageType.NORMAL: NivelLog = NLog.LogLevel.Info; break;
+                case EnumMessageType.WARNING: NivelLog = NLog.LogLevel.Warn; break;
+                case EnumMessageType.ERROR: NivelLog = NLog.LogLevel.Error; break;
+                case EnumMessageType.NOTHING: NivelLog = NLog.LogLevel.Off; break;
             }
 
             DateTime d = DateTime.Now;
@@ -66,6 +67,7 @@ namespace LibreriaConexion
                 + d.Second.ToString().PadLeft(2, '0')
                 + "." + conf.LogFileName.Split('.')[1];
 
+            
 
             ModuloDeRegistro.InicializaRegistrador(conf.LogPath, conf.LogMaxFileSize, NivelLog, fName);
 
@@ -73,13 +75,15 @@ namespace LibreriaConexion
         }
         public Comunicacion(BaseConfig baseConf, ArchivoConfig conf, bool interno)
         {
-            switch(TransacManager.ProtoConfig.CONFIG.LevelLog)
+            var NivelLog = NLog.LogLevel.Off;
+
+            switch (TransacManager.ProtoConfig.CONFIG.LevelLog)
             {
-                case EnumMessageType.DEBUG: NivelLog = EnumNivelLog.Trace; break;
-                case EnumMessageType.ERROR: NivelLog = EnumNivelLog.Error; break;
-                case EnumMessageType.NORMAL: NivelLog = EnumNivelLog.Info; break;
-                case EnumMessageType.NOTHING: NivelLog = EnumNivelLog.Off; break;
-                case EnumMessageType.WARNING: NivelLog = EnumNivelLog.Warn; break;
+                case EnumMessageType.DEBUG: NivelLog = NLog.LogLevel.Trace; break;
+                case EnumMessageType.NORMAL: NivelLog = NLog.LogLevel.Info; break;
+                case EnumMessageType.WARNING: NivelLog = NLog.LogLevel.Warn; break;
+                case EnumMessageType.ERROR: NivelLog = NLog.LogLevel.Error; break;                
+                case EnumMessageType.NOTHING: NivelLog = NLog.LogLevel.Off; break;
             }
 
             DateTime d = DateTime.Now;
@@ -456,7 +460,8 @@ namespace LibreriaConexion
                                 {
                                     if (((Error)rdo[0]).CodError != 0)
                                     {
-                                        cxnErr = (Error)rdo;
+                                        ModuloDeRegistro.RegistrarMensaje(((Error)rdo[0]).Descripcion, lvlLogError, TimeStampLog);
+                                        cxnErr = (Error)rdo[0];
                                         sale = true;
                                     }
                                 }
@@ -522,6 +527,7 @@ namespace LibreriaConexion
                             UltimaConexionOptima[2] = TransacManager.ProtoConfig.CONFIG.Telefono;
 
                             ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
+
                             ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
                             ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
 
@@ -563,7 +569,7 @@ namespace LibreriaConexion
                 #endregion
 
                 if (cxnErr.CodError != 0)
-                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + "Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
                 else
                 {
                     ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA:\n ", lvlLogCxn, TimeStampLog);
@@ -834,8 +840,6 @@ namespace LibreriaConexion
             esPorPuertoSerie = true;
             try
             {
-                //pe = new Logger(TransacManager.ProtoConfig.CONFIG);
-
                 string[] portsCom = SerialPort.GetPortNames();
                 string portComDisponibles = "Puertos disponibles: ";
                 foreach (string st in portsCom)
@@ -1554,9 +1558,7 @@ namespace LibreriaConexion
 
             if (Err.CodError != 0) { }
 
-
-            //if (NivelLog <= lvlLogDebug)
-                ModuloDeRegistro.LogBuffer(aEnviar4, "Enmascarado ( " + aEnviar4.Length.ToString() + "b )", aEnviar4.Length, lvlLogDebug);            
+            ModuloDeRegistro.LogBuffer(aEnviar4, "Enmascarado ( " + aEnviar4.Length.ToString() + "b )", aEnviar4.Length, lvlLogDebug);            
 
             if (!esPorPuertoSerie)
                 bytesCount = sender.Send(aEnviar4);
@@ -1594,9 +1596,9 @@ namespace LibreriaConexion
                             throw new ArgumentException("Señal CTS (Clear To Send) en falso. Cantidad máxima de intentos superada.");
                     }                   
                 }
-                catch (Exception e)
+                catch
                 {
-                        throw e;
+                     throw;
                 }
                     
             }            
@@ -1643,7 +1645,7 @@ namespace LibreriaConexion
 
                             ModuloDeRegistro.RegistrarMensaje("Encuentra 0x01", lvlLogDebug, TimeStampLog);
                             Array.Resize(ref bytepr, con);
-                            if (bytepr.Length > 2 && NivelLog <= lvlLogDebug)
+                            if (bytepr.Length > 2)
                                 ModuloDeRegistro.LogBuffer(bytepr, "Bytes de Radio ajenos al protocolo normal. Normalmente no viene nada.", bytepr.Length, lvlLogDebug);
 
                             aRecibir = new byte[ProtocoloConfig.TamBuffer];
@@ -1674,7 +1676,7 @@ namespace LibreriaConexion
                         }
 
                     }
-                    catch (Exception e)
+                    catch
                     {
                         CierraPuertoSerie();
                         ModuloDeRegistro.RegistrarMensaje("Vínculo telefónico caído. Restableciendo...", lvlLogTransaccion, TimeStampLog);
@@ -1693,13 +1695,13 @@ namespace LibreriaConexion
                                 }
                             }
                             ModuloDeRegistro.RegistrarMensaje("Falló reintento " + intentos.ToString(), lvlLogDebug, TimeStampLog);
-                            throw e;
+                            throw;
                         }
                         else
                         {
                             Array.Resize(ref bytepr, con);
                             ModuloDeRegistro.LogBuffer(bytepr, "Superados intentos. Esto se recibió: ", bytepr.Length, lvlLogDebug);
-                            throw e;
+                            throw;
                         }
                     }
                 }
@@ -1733,7 +1735,7 @@ namespace LibreriaConexion
 
                         ModuloDeRegistro.RegistrarMensaje("Encuentra 0x01", lvlLogDebug, TimeStampLog);
                         Array.Resize(ref bytepr, con);
-                        if (bytepr.Length > 2 && NivelLog <= lvlLogDebug)
+                        if (bytepr.Length > 2)
                             ModuloDeRegistro.LogBuffer(bytepr, "Bytes de Radio ajenos al protocolo normal. Normalmente no viene nada.", bytepr.Length, lvlLogDebug);
 
                         aRecibir = new byte[ProtocoloConfig.TamBuffer];
@@ -1764,7 +1766,7 @@ namespace LibreriaConexion
                         //}
 
                     }
-                    catch (Exception e)
+                    catch
                     {
                         CierraPuertoSerie();
 
@@ -1785,22 +1787,20 @@ namespace LibreriaConexion
                                 }
                             }
                             ModuloDeRegistro.RegistrarMensaje("Falló reintento " + intentos.ToString(), lvlLogDebug, TimeStampLog);
-                            throw e;
+                            throw;
                         }
                         else
                         {
                             Array.Resize(ref bytepr, con);
                             ModuloDeRegistro.LogBuffer(bytepr, "Bytes de Radio: fallaron " + intentos.ToString() + " intentos. Esto se recibió: ", bytepr.Length, lvlLogDebug);
-                            throw e;
+                            throw;
                         }
                     }
                 }
                 #endregion
 
-                #region LOG ENMASCARADO                
-                //if (NivelLog <= lvlLogDebug)
-                    ModuloDeRegistro.LogBuffer(aRecibir, "Enmascarado ( " + aRecibir.Length.ToString() + "b )", aRecibir.Length, lvlLogDebug);
-                #endregion
+                // LOG ENMASCARADO
+                ModuloDeRegistro.LogBuffer(aRecibir, "Enmascarado ( " + aRecibir.Length.ToString() + "b )", aRecibir.Length, lvlLogDebug);
 
                 byte[] salidaUnpack;
                 Err = TR.Unpack(aRecibir, out salidaUnpack);                
@@ -1820,22 +1820,22 @@ namespace LibreriaConexion
                 }
                 else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.EOT)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Recibe EOT INESPERADO en " + tipoMen, EnumNivelLog.Warn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe EOT INESPERADO en " + tipoMen, NLog.LogLevel.Warn, TimeStampLog);
                     return objMensaje;
                 }
                 else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.NACK)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Recibe NACK causa " + objMensaje[0] + " en " + tipoMen, EnumNivelLog.Warn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe NACK causa " + objMensaje[0] + " en " + tipoMen, NLog.LogLevel.Warn, TimeStampLog);
                     return objMensaje;
                 }
-                else if (tipoEsperado == 6 && Empaquetador.tipoPaqRec == (byte)EnumPaquete.ACK)
+                else if (tipoEsperado == (int)EnumPaquete.ACK && Empaquetador.tipoPaqRec == (byte)EnumPaquete.ACK)
                 {
                     ModuloDeRegistro.RegistrarMensaje("Recibe ACK ", lvlLogTransaccion, TimeStampLog);
                     return objMensaje;
                 }
                 else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.ACK)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Recibe ACK INESPERADO en " + tipoMen, EnumNivelLog.Warn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe ACK INESPERADO en " + tipoMen, NLog.LogLevel.Warn, TimeStampLog);
                     return objMensaje;
                 }
 
@@ -1845,7 +1845,6 @@ namespace LibreriaConexion
             }
             catch (SocketException es)
             {
-                //if (CONFIG.LevelLog == lvlLogExcepciones, TimeStampLog || CONFIG.LevelLog == EnumMessageType.DEBUG)
                 ModuloDeRegistro.RegistrarMensaje("Excepción de Socket en Recibir(): " + es.ToString(), lvlLogExcepciones, TimeStampLog);
                 sender.Close();
                 objMensaje.Add(new Error("Se perdió el vínculo de conexión.", (uint)ErrComunicacion.CXN_SOCKETex, (uint)0));
@@ -1874,17 +1873,7 @@ namespace LibreriaConexion
                 case "E": er.CodError = (int)NackRec.E; break;
                 }            
                 er.Descripcion = " Recibido Nack causa " + (string)tipoNack + ".";
-                
-                //IList objs = new List<object>();
-                //bytes = new byte[TamBuffer];
-                
-                //LogBMTP.LogMessage("Respuesta ", CONFIG.LevelLog);
-                //objs = RecibirSgte(bytes, 4, 0, "EOT");
-
-                //if(objs[0] is string && ((string)objs[0]) == "Eot")
-                //{
-                //    tipoNack = "Eot";
-                //}
+                                
             }
 
             if(((string)tipoNack) == "Eot")
@@ -1914,8 +1903,8 @@ namespace LibreriaConexion
             }
             else
                 errEx.Estado = 0;
-            ModuloDeRegistro.RegistrarMensaje("Excepción: " + errEx.CodError + " " + errEx.Descripcion, Comunicacion.lvlLogExcepciones, Comunicacion.TimeStampLog);
-            ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), Comunicacion.lvlLogDebug, Comunicacion.TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("Excepción: " + errEx.CodError + " " + errEx.Descripcion, lvlLogExcepciones, Comunicacion.TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogDebug, Comunicacion.TimeStampLog);
             return errEx;
         }
         #endregion
@@ -2001,7 +1990,7 @@ namespace LibreriaConexion
         }
         #endregion
 
-        public virtual void Dispose(bool disposeManagedResources)
+        protected virtual void Dispose(bool disposeManagedResources)
         {
             if(sender != null)
                 sender.Dispose();

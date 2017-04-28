@@ -9,7 +9,7 @@ using System.Collections;
 using LibreriaClases;
 using LibreriaClases.Clases;
 
-namespace ProtocoloLib
+namespace LibreriaProtocolo
 {
     public class Empaquetador
     {

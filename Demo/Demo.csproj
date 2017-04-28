@@ -1,24 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{FC6385A6-4581-4799-B862-0575D36A0E0B}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{1EC61FC3-FEB7-4C5D-B627-A3014CD12B1D}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LibreriaConexion</RootNamespace>
-    <AssemblyName>LibreriaConexion</AssemblyName>
+    <RootNamespace>Demo</RootNamespace>
+    <AssemblyName>Demo</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -26,61 +23,56 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BinConfig">
       <HintPath>C:\SERVICIOS\dlls\BinConfig.dll</HintPath>
     </Reference>
-    <Reference Include="DotRas">
-      <HintPath>C:\SERVICIOS\dlls\DotRas.dll</HintPath>
-    </Reference>
     <Reference Include="LibreriaClases">
       <HintPath>C:\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
-    <Reference Include="LoggerLib">
-      <HintPath>..\LoggerLib\bin\Debug\LoggerLib.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoLibrary">
-      <HintPath>C:\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="NLog">
       <HintPath>C:\SERVICIOS\dlls\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="ProtocoloLib">
-      <HintPath>..\ProtocoloLib\bin\Debug\ProtocoloLib.dll</HintPath>
-    </Reference>
-    <Reference Include="SqlManager">
-      <HintPath>C:\SERVICIOS\dlls\SqlManager.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Comunicacion.cs" />
-    <Compile Include="Comunicacion.Transacciones.cs" />
+    <Compile Include="Demo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LibreriaConexion\LibreriaConexion.csproj">
+      <Project>{fc6385a6-4581-4799-b862-0575d36a0e0b}</Project>
+      <Name>LibreriaConexion</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LoggerLib\LibreriaRegistro.csproj">
+      <Project>{e98f4e55-2600-41ab-ae64-f6caaf3dd28b}</Project>
+      <Name>LibreriaRegistro</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProtocoloLib\LibreriaProtocolo.csproj">
+      <Project>{b049192a-0ac8-4c35-9ebd-9609c16a61f0}</Project>
+      <Name>LibreriaProtocolo</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

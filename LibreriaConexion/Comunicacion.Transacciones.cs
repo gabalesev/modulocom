@@ -1,7 +1,7 @@
 ﻿using LibreriaClases;
 using LibreriaClases.Clases;
-using LoggerLib;
-using ProtocoloLib;
+using LibreriaRegistro;
+using LibreriaProtocolo;
 using System;
 using System.Collections;
 using System.Collections.Generic;

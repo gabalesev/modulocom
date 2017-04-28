@@ -6,20 +6,20 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace LoggerLib
+namespace LibreriaRegistro
 {
     public static class ModuloDeRegistro
     {
-        private static readonly Logger registrador = LogManager.GetCurrentClassLogger();        
+        private static readonly Logger registrador = LogManager.GetCurrentClassLogger();
 
         private const string ENCABEZADO_16 = "Offset   | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  | 0123456789ABCDEF";
         private const char ENCABEZADO_LINEA = '=';
         private const int BASE_HEXA = 16;
 
-        private static EnumNivelLog NIVEL_DE_REGISTRO;
+        private static LogLevel NIVEL_DE_REGISTRO;
 
 
-        public static void InicializaRegistrador(string directorioBase, int longitudMaxima, EnumNivelLog nivelRegistro, string nombreArchivo)
+        public static void InicializaRegistrador(string directorioBase, int longitudMaxima, LogLevel nivelRegistro, string nombreArchivo)
         {
             NIVEL_DE_REGISTRO = nivelRegistro;
 
@@ -31,30 +31,19 @@ namespace LoggerLib
             var consolaDeRegistro = new ColoredConsoleTarget
             {
                 Name = "console",
-                Layout = "${shortdate} ${level} ${message}"
+                Layout = "${level} ${message}"
             };
 
             var archivoDeRegistro = new FileTarget
             {
                 FileName = directorioBase + nombreArchivo,
-                Layout = "${message}",
+                Layout = "${level} ${message}",
                 ArchiveAboveSize = longitudMaxima,
                 ArchiveNumbering = ArchiveNumberingMode.Sequence
             };
-                        
-            LogLevel logLevel = LogLevel.Off;
-            switch (NIVEL_DE_REGISTRO)
-            {
-                case EnumNivelLog.Trace: logLevel = LogLevel.Trace; break;
-                case EnumNivelLog.Debug: logLevel = LogLevel.Debug; break;
-                case EnumNivelLog.Info: logLevel = LogLevel.Info; break;
-                case EnumNivelLog.Error: logLevel = LogLevel.Error; break;
-                case EnumNivelLog.Warn: logLevel = LogLevel.Warn; break;
-                case EnumNivelLog.Fatal: logLevel = LogLevel.Fatal; break;
-            }
-
-            var reglaConsola = new LoggingRule("*", logLevel, consolaDeRegistro);
-            var reglaArchivo = new LoggingRule("*", logLevel, archivoDeRegistro);
+            
+            var reglaConsola = new LoggingRule("*", nivelRegistro, consolaDeRegistro);
+            var reglaArchivo = new LoggingRule("*", nivelRegistro, archivoDeRegistro);
 
             LoggingConfiguration confLog = new LoggingConfiguration();
             confLog.AddTarget("console", consolaDeRegistro);
@@ -67,7 +56,7 @@ namespace LoggerLib
             LogManager.Configuration = confLog;
         }
 
-        public static void RegistrarMensaje(string mensaje, EnumNivelLog nivelMensaje, bool incluirFechaHora)
+        public static void RegistrarMensaje(string mensaje, LogLevel nivelMensaje, bool incluirFechaHora)
         {
             if (incluirFechaHora)
             {
@@ -76,18 +65,17 @@ namespace LoggerLib
 
             LogManager.Configuration.Reload();
 
-            // Logueo solo si el nivel de log del mensaje es mayor o igual al configurado
+            // Logueo solo si el nivel de log del mensaje es mayor o igual al configurado globalmente
             if (nivelMensaje >= NIVEL_DE_REGISTRO)
             {
-                switch (NIVEL_DE_REGISTRO)
+                switch(nivelMensaje.Name)
                 {
-                    case EnumNivelLog.Trace: registrador.Trace(mensaje); break;
-                    case EnumNivelLog.Debug: registrador.Debug(mensaje); break;
-                    case EnumNivelLog.Info: registrador.Info(mensaje); break;
-                    case EnumNivelLog.Warn: registrador.Warn(mensaje); break;
-                    case EnumNivelLog.Error: registrador.Error(mensaje); break;
-                    case EnumNivelLog.Fatal: registrador.Fatal(mensaje); break;
-
+                    case "Trace": registrador.Trace(mensaje); break;
+                    case "Debug": registrador.Debug(mensaje); break;
+                    case "Info": registrador.Info(mensaje); break;
+                    case "Warn": registrador.Warn(mensaje); break;
+                    case "Error": registrador.Error(mensaje); break;
+                    case "Fatal": registrador.Fatal(mensaje); break;
                 }
             }
         }
@@ -99,11 +87,11 @@ namespace LoggerLib
         /// <param name="titulo">Titulo que </param>
         /// <param name="longitudBufferUsado">Longitud del buffer</param>
         /// <param name="nivelLog">Nivel del registrador</param>
-        public static void LogBuffer(byte[] bufferInBytes, string titulo, int longitudBufferUsado, EnumNivelLog nivelLog)
+        public static void LogBuffer(byte[] bufferInBytes, string titulo, int longitudBufferUsado, LogLevel nivelLog)
         {
             var buffer = byteToChar(bufferInBytes);
 
-            if (NIVEL_DE_REGISTRO.Equals(EnumNivelLog.Off))
+            if (NIVEL_DE_REGISTRO.Equals(LogLevel.Off))
             {
                 // Esta configurado para no loguear nada
                 return;
@@ -112,7 +100,7 @@ namespace LoggerLib
             if (longitudBufferUsado > buffer.Length)
             {
                 //ERROR: longitud no valida.
-                RegistrarMensaje(string.Format("Cantidad de buffer usado({0}) mayor que el tamaño del buffer({1}).\n", longitudBufferUsado, buffer.Length), EnumNivelLog.Error, false);
+                RegistrarMensaje(string.Format("Cantidad de buffer usado({0}) mayor que el tamaño del buffer({1}).\n", longitudBufferUsado, buffer.Length), LogLevel.Error, false);
                 return;
             }
             StringBuilder sb = new StringBuilder();
@@ -124,16 +112,15 @@ namespace LoggerLib
             string logRegistryNumber = string.Empty;
             string logEmptyChar = string.Empty;
             string loguerChar = "   ";
-            string loguerCharNo16 = "    ";
             char oneItemBuffer = ' ';
             char[] numberToHexa = new char[16] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-            
+
             //Logueo HEADER_16
             sb.AppendLine(ENCABEZADO_16);
 
             //Logueo linea doble
             sb.AppendLine(lineaDoble.PadLeft(ENCABEZADO_16.Length, ENCABEZADO_LINEA));
-            
+
             //Calculo cantidad de lineas que voy a tener que loguear
             int countLines;
             if (longitudBufferUsado % BASE_HEXA == 0)
@@ -158,21 +145,13 @@ namespace LoggerLib
                 {
                     if (i * BASE_HEXA + j >= longitudBufferUsado)
                     {
-                        if (BASE_HEXA == 16)
-                        {
-                            oneLine += loguerChar;
-                        }
-                        else
-                        {
-                            oneLine += loguerCharNo16;
-                        }
+                        oneLine += loguerChar;
                     }
                     else
                     {
                         oneItemBuffer = buffer[i * BASE_HEXA + j];
 
-                        oneLine += numberToHexa[oneItemBuffer >> 4].ToString() + numberToHexa[oneItemBuffer & 0xf].ToString() + " ";
-                        break;
+                        oneLine += numberToHexa[oneItemBuffer >> 4].ToString() + numberToHexa[oneItemBuffer & 0xf].ToString() + " ";                        
                     }
                 }
                 oneLine += "| ";
@@ -208,12 +187,12 @@ namespace LoggerLib
             Console.Out.WriteLine("Vamos a suponer que estamos yendo a trabjar y para ello utilizamos el transporte público:");
             Console.Out.WriteLine("------------------------------------------------------------------");
 
-            RegistrarMensaje("Trazar: La muchedumbre de gente en la calle.", EnumNivelLog.Trace, true);
-            RegistrarMensaje("Depurar: ¿Hacia dónde nos dirijimos y porqué?", EnumNivelLog.Debug, true);
-            RegistrarMensaje("Info: ¿En qué estación de omnibus estamos?", EnumNivelLog.Info, true);
-            RegistrarMensaje("Advertir: Estamos distraidos y no estamos mirando si viene el omnibus.", EnumNivelLog.Warn, true);
-            RegistrarMensaje("Error: Subimos al autobus incorrecto.", EnumNivelLog.Error, true);
-            RegistrarMensaje("Fatal: Nos atropeyó el omnibus.", EnumNivelLog.Fatal, true);
+            RegistrarMensaje("Trazar: La muchedumbre de gente en la calle.", LogLevel.Trace, true);
+            RegistrarMensaje("Depurar: ¿Hacia dónde nos dirijimos y porqué?", LogLevel.Debug, true);
+            RegistrarMensaje("Info: ¿En qué estación de omnibus estamos?", LogLevel.Info, true);
+            RegistrarMensaje("Advertir: Estamos distraidos y no estamos mirando si viene el omnibus.", LogLevel.Warn, true);
+            RegistrarMensaje("Error: Subimos al autobus incorrecto.", LogLevel.Error, true);
+            RegistrarMensaje("Fatal: Nos atropeyó el omnibus.", LogLevel.Fatal, true);
 
             Console.Out.WriteLine("");
             Console.Out.WriteLine("Registro finalizado.");

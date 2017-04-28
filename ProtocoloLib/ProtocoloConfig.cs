@@ -1,13 +1,9 @@
 ﻿using BinConfig;
 using LibreriaClases;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ProtocoloLib
+namespace LibreriaProtocolo
 {
     public class ProtocoloConfig
     {
@@ -28,8 +24,7 @@ namespace ProtocoloLib
 
         public NackEnv NACK_ENV { get; set; }
         public NackRec NACK_REC { get; set; }
-
-        public byte[] CLAVE_TARJETA;
+        
         public byte[] PROTOCOLO;
 
         public ProtocoloConfig(BaseConfig baseConf, ArchivoConfig conf, bool conCicloPRN = true)
@@ -39,8 +34,7 @@ namespace ProtocoloLib
             CONFIG = conf;
             BASE_CONFIG = baseConf;
             CON_CICLO_PRN = conCicloPRN;
-
-            CLAVE_TARJETA = new byte[8];
+            
             PROTOCOLO = new byte[84];
 
             string nroTerStr = BASE_CONFIG.Terminal.ToString();

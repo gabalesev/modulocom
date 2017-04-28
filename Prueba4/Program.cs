@@ -8,7 +8,7 @@ using LibreriaClases;
 using System.Linq;
 using BinConfig;
 using System.Net;
-using LoggerLib;
+using LibreriaRegistro;
 using System.Net.Sockets;
 
 namespace Prueba1
@@ -17,21 +17,10 @@ namespace Prueba1
 
     public class Program
     {
-        private static char[] byteToChar(byte[] bytes)
-        {
-            char[] ch = new char[bytes.Length];
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                ch[i] = (char)bytes[i];
-            }
-            return ch;
-        }
 
         static void Main(string[] args)
         {
             Console.Beep();
-
-            BaseConfig bc = new BaseConfig();
 
             #region //Prueba de QUINIELA 
 
@@ -60,10 +49,9 @@ namespace Prueba1
 
             try
             {
-                Opera opera = new Opera();
                 ArchivoConfig lee = new ArchivoConfig();                
                 
-                Errorof errConfig = opera.LeeArchivo(ref lee);
+                Errorof errConfig = new Opera().LeeArchivo(ref lee);
                 if (errConfig.Error != 0)
                 {
                     Console.WriteLine("Error al leer archivo de configuración.");
@@ -87,6 +75,7 @@ namespace Prueba1
                     }
                 }
 
+                var bc = new BaseConfig();
                 Error errBConfig = bc.LeeBaseConfig(ref bc);
                 bc.Tarjeta = 53772;
 
@@ -135,11 +124,6 @@ namespace Prueba1
 
                 Comunicacion com = new Comunicacion(bc, lee);
                 
-                ProtocoloLib.TransacManager.ProtoConfig.CLAVE_TARJETA = BitConverter.GetBytes(0x8EE9AE721FD4611E).Reverse().ToArray();
-
-                //Error errCxn = Comunicacion.AbrePuerto();
-
-
                 Error errCxn = com.Conectar(paqA, EnumModoConexion.ETHERNET);
                 Agente agente = new Agente();
                 if (errCxn.CodError != 0)
@@ -248,9 +232,8 @@ namespace Prueba1
                                                     else if (objsRec3[1] is TransacQuinielaH)
                                                     {
                                                         TransacQuinielaH transRta = (TransacQuinielaH)objsRec3[1];
-                                                        //certifica.CertificadoQuiniela(transRta.Protocolo, bc.MAC, (int)paqA.Tarjeta, (int)paqA.NumeroTerminal, ref transRta.Certificado);
 
-                                                        ModuloDeRegistro.LogBuffer(transRta.Protocolo, "Test LoggeLib", transRta.Protocolo.Length, EnumNivelLog.Trace);
+                                                        ModuloDeRegistro.LogBuffer(transRta.Protocolo, "Test LoggeLib", transRta.Protocolo.Length, NLog.LogLevel.Trace);
 
                                                         Console.WriteLine("Número de apuesta de QUINIELA: " + transRta.id_ticket + "\n");
                                                         Console.WriteLine("Número de certificado: " + transRta.Certificado + "\n");
