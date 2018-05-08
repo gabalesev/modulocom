@@ -187,7 +187,7 @@ namespace Prueba1
                             {
                                 case "1":
                                     #region
-                                    objsRec2 = com.InteraccionPQ1(PedidosSorteos.QUINIELA, Convert.ToUInt32(paqA.NumeroTerminal), EnumEstadoParametrosOff.HABILITADO);
+                                    objsRec2 = null;//com.InteraccionPQ1(PedidosSorteos.QUINIELA, Convert.ToUInt32(paqA.NumeroTerminal), EnumEstadoParametrosOff.HABILITADO);
                                     if (objsRec2.Count > 0 && objsRec2[0] != null && objsRec2[0] is Error)
                                     {
                                         Error psQErr = (Error)objsRec2[0];
@@ -220,7 +220,7 @@ namespace Prueba1
                                                 cabecera.CantApu = 5;
 
 
-                                                objsRec3 = com.InteraccionPQ2(cabecera, jue, PedidosSorteos.QUINIELA);
+                                                objsRec3 = null; //com.InteraccionPQ2(cabecera, jue, PedidosSorteos.QUINIELA);
                                                 if (objsRec3[0] != null && objsRec3[0] is Error)
                                                 {
                                                     Error TransErr = (Error)objsRec3[0];

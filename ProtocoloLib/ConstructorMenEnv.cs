@@ -116,23 +116,23 @@ namespace LibreriaProtocolo
         #endregion
 
         #region ENVIO DE APUESTAS
-        public static byte[] crearP_QM(TransacQuinielaH cabecera, TransacQuinielaB juegos)// Quiniela Multiple
-        {            
-            byte[] tipoMsg = DataConverter.Pack("^$8", "P");
-            byte[] protocolo = ProtocoloApuesta.EmpaquetaQuiniela(cabecera, juegos);
+        //public static byte[] crearP_QM(TransacQuinielaH cabecera, TransacQuinielaB juegos)// Quiniela Multiple
+        //{            
+        //    byte[] tipoMsg = DataConverter.Pack("^$8", "P");
+        //    byte[] protocolo = ProtocoloApuesta.EmpaquetaQuiniela(cabecera, juegos);
 
-            byte[] paq = new byte[tipoMsg.Length + protocolo.Length];
+        //    byte[] paq = new byte[tipoMsg.Length + protocolo.Length];
 
-            Array.Copy(tipoMsg, paq, tipoMsg.Length);
-            Array.Copy(protocolo, 0, paq, tipoMsg.Length, protocolo.Length);
+        //    Array.Copy(tipoMsg, paq, tipoMsg.Length);
+        //    Array.Copy(protocolo, 0, paq, tipoMsg.Length, protocolo.Length);
 
-            //paq.Skip(1).Take(paq.Length - 13).ToArray();
+        //    //paq.Skip(1).Take(paq.Length - 13).ToArray();
                 
-            //Comunicacion.PROTOCOLO = protocolo;
-            //Array.Resize(ref Comunicacion.PROTOCOLO, protocolo.Length - 12);
+        //    //Comunicacion.PROTOCOLO = protocolo;
+        //    //Array.Resize(ref Comunicacion.PROTOCOLO, protocolo.Length - 12);
 
-            return paq;
-        }
+        //    return paq;
+        //}
         #endregion
 
 

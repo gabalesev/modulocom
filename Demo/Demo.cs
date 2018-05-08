@@ -62,7 +62,7 @@ namespace Demo
             Comunicacion com = new Comunicacion(bc, lee);
 
             Error errCxn = com.Conectar(paqA, EnumModoConexion.ETHERNET);
-
+                
             if (errCxn.CodError != 0)
             {
                 com.Desconectar();
@@ -86,16 +86,6 @@ namespace Demo
                     Error errOffline = new Error();
                 }
 
-                IList objsRec3 = new List<object>();
-                IList objsRec2 = new List<object>();
-
-                TransacQuinielaH cabeceraAnul = new TransacQuinielaH();
-                TransacQuinielaB cuerposAnul = new TransacQuinielaB();
-                AnulReimpQuiniela anulacionQ = new AnulReimpQuiniela();
-
-                TransacPoceado poceadoAnul = new TransacPoceado();
-                AnulReimpPoceado anulacionP = new AnulReimpPoceado();
-
                 if (objsRec.Count < 2 && objsRec[0] is Error)
                 {
                     Error err = (Error)objsRec[0];
@@ -106,6 +96,9 @@ namespace Demo
 
                     }
                 }
+
+                Console.Read();
+                Environment.Exit(0);
             }
         }
         
@@ -123,7 +116,7 @@ namespace Demo
             paqA.FechaHora = DateTime.Now;
 
             Version assemblyversion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-            paqA.Version = (ushort)((assemblyversion.Major * 1000) + (assemblyversion.Minor * 10) + (assemblyversion.Build));//version
+            paqA.Version = 18011;//(ushort)((assemblyversion.Major * 1000) + (assemblyversion.Minor * 10) + (assemblyversion.Build));//version
 
             paqA.Tipo = EnumTerminalModelo.TML;
 

@@ -12,7 +12,7 @@ namespace LibreriaRegistro
     {
         private static readonly Logger registrador = LogManager.GetCurrentClassLogger();
 
-        private const string ENCABEZADO_16 = "Offset   | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  | 0123456789ABCDEF";
+        private const string ENCABEZADO_16 = "Linea | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  | 0123456789ABCDEF";
         private const char ENCABEZADO_LINEA = '=';
         private const int BASE_HEXA = 16;
 
@@ -138,7 +138,7 @@ namespace LibreriaRegistro
                 string oneLine = string.Empty;
 
                 //Logueo numero de registro: 
-                oneLine += intToHexa(i).PadLeft(7, '0') + "0 | ";
+                oneLine += intToHexa(i).PadLeft(4, '0') + "0 | ";
 
                 //Itero dentro de una linea en cada valor a loguear
                 for (int j = 0; j < BASE_HEXA; j++)

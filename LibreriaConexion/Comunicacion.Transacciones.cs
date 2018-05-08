@@ -126,7 +126,7 @@ namespace LibreriaConexion
                 return objs;
             }
         }
-        public IList InteraccionPQ1(PedidosSorteos sort, UInt32 terminal, EnumEstadoParametrosOff estadoParametrosOff, string path = @"C:\BetmakerTP\Off")
+        /*public IList InteraccionPQ1(PedidosSorteos sort, UInt32 terminal, EnumEstadoParametrosOff estadoParametrosOff, string path = @"C:\BetmakerTP\Off")
         {
             try
             {
@@ -175,8 +175,8 @@ namespace LibreriaConexion
                 Error errEx = EmpalmeErrorExcepcion(ex, ErrComunicacion.PEDIDO_SORTEOex, "Ha ocurrido un problema durante la descarga de parametros.");
                 return new List<object> { errEx };
             }
-        }
-        public IList InteraccionPQ2(object cabecera, object juegos, PedidosSorteos queJuego)
+        }*/
+        /*public IList InteraccionPQ2(object cabecera, object juegos, PedidosSorteos queJuego)
         {
             try
             {
@@ -258,6 +258,6 @@ namespace LibreriaConexion
                 Error errEx = EmpalmeErrorExcepcion(ex, ErrComunicacion.APUESTAex, "Ha ocurrido un problema durante la descarga de apuestas.");
                 return new List<object> { errEx };
             }
-        }
+        }*/
     }
 }

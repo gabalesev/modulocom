@@ -20,7 +20,7 @@ namespace LibreriaProtocolo
 
             try
             {
-                string path = conf.PathPRN; //Directory.GetCurrentDirectory();
+                string path = Directory.GetCurrentDirectory();
 
                 path = path + conf.ArchivoPRN;
 
@@ -61,7 +61,7 @@ namespace LibreriaProtocolo
 
             try
             {
-                string path = conf.PathPRN;//@"C:\BetmakerTP\Conexion"; //Directory.GetCurrentDirectory();
+                string path = Directory.GetCurrentDirectory();
 
                 path = path + conf.ArchivoPRN;
 

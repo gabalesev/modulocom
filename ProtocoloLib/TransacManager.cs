@@ -1,6 +1,7 @@
 ﻿using BinConfig;
 using LibreriaClases;
 using LibreriaClases.Clases;
+using LibreriaRegistro;
 using MonoLibrary;
 using System;
 using System.Collections;
@@ -58,6 +59,9 @@ namespace LibreriaProtocolo
             {
                 byte[] aEnviar2;
                 Error Err = emp.Empaqueta(entrada, out aEnviar2, entrada.Length, tipo, orden);
+
+                ModuloDeRegistro.LogBuffer(aEnviar2, "Empaquetado ( " + aEnviar2.Length.ToString() + "b )", aEnviar2.Length, NLog.LogLevel.Debug);
+
                 if (Err.CodError != 0)
                     return Err;
 
@@ -74,6 +78,8 @@ namespace LibreriaProtocolo
                 //salida[longi] = Empaquetador.;
                 //longi++;
                 Array.Resize(ref salida, longi);
+
+                ModuloDeRegistro.LogBuffer(salida, "Enmascarado ( " + salida.Length.ToString() + "b )", salida.Length, NLog.LogLevel.Debug);
             }
             else // envio NACK con el tipo de error (TransacManager.ProtoConfig.NACK_ENV)
             {
@@ -126,12 +132,12 @@ namespace LibreriaProtocolo
             }
             else
                 menRArr = new byte[entrada.Length];
+            
+            ModuloDeRegistro.LogBuffer(entrada, "Enmascarado ( " + entrada.Length.ToString() + "b )", entrada.Length, NLog.LogLevel.Debug);
 
             enmask.Desenmascara(entrada, entrada.Length, ref menRArr, ref lonMenR);
 
-            //if (ProtoConfig.CONFIG.LevelLog == EnumMessageType.DEBUG)
-            //    PeTR.LogBuffer(byteToChar(aRecibir), "Paquete enmascarado ( " + aRecibir.Length.ToString() + "b )", 16, aRecibir.Length);
-            //PeTR.LogBuffer(byteToChar(menRArr), "Recibe " + tipoMen.Substring(0, 1) + " ( " + menRArr.Length.ToString() + "b )", 16, menRArr.Length);
+            ModuloDeRegistro.LogBuffer(menRArr, "Empaquetado ( " + menRArr.Length.ToString() + "b )", menRArr.Length, NLog.LogLevel.Debug);
 
             if (crc.compruebaCrc(menRArr, lonMenR))
             {

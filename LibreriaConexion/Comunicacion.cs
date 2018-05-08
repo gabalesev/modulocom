@@ -13,6 +13,7 @@ using DotRas;
 using System.Linq;
 using LibreriaProtocolo;
 using LibreriaRegistro;
+using System.Text;
 
 namespace LibreriaConexion
 {
@@ -116,7 +117,7 @@ namespace LibreriaConexion
         {
             Error cxnErr = new Error();
 
-            ModuloDeRegistro.RegistrarMensaje("TERMINAL: " + ter.NumeroTerminal + " TARJETA: " + ter.Tarjeta, lvlLogCxn, TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("TERMINAL: " + ter.NumeroTerminal + " USUARIO: " + ter.Tarjeta, lvlLogCxn, TimeStampLog);
             //LogBMTP.LogMessage("TARJETA: " + ter.Tarjeta, CONFIG.LevelLog);
             //LogBMTP.LogMessage("(Level log: " + lvlLogCabeceraTransaccion, TimeStampLog.ToString() + ")", lvlLogCxn, TimeStampLog);          
 
@@ -152,7 +153,7 @@ namespace LibreriaConexion
                 TransacManager.ProtoConfig.TIPO_CXN = EnumModoConexion.ETHERNET;
                 if (TransacManager.ProtoConfig.CON_CICLO_PRN)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: ETHERNET", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: ETHERNET \n", lvlLogCxn, TimeStampLog);
                     cxnErr = Crea_PRN_Socket(ter);
                     if (cxnErr.CodError != 0)
                         return cxnErr;
@@ -449,9 +450,9 @@ namespace LibreriaConexion
                                 UltimaConexionOptima[1] = TransacManager.ProtoConfig.CONFIG.Port.ToString();
                                 UltimaConexionOptima[2] = TransacManager.ProtoConfig.CONFIG.Telefono;
 
-                                ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
-                                ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                                ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n\nHOST: IP "
+                                + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n"
+                                + "BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, false);
 
                                 Comunicacion cm = new Comunicacion(TransacManager.ProtoConfig.BASE_CONFIG, TransacManager.ProtoConfig.CONFIG, true);
                                 cm.sender = sender;
@@ -526,10 +527,9 @@ namespace LibreriaConexion
                             UltimaConexionOptima[1] = TransacManager.ProtoConfig.CONFIG.Port.ToString();
                             UltimaConexionOptima[2] = TransacManager.ProtoConfig.CONFIG.Telefono;
 
-                            ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
-
-                            ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                            ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n\nHOST: IP "
+                                + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n"
+                                + "BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, false);
 
                             if (TransacManager.ProtoConfig.CON_CICLO_PRN)
                             {
@@ -569,7 +569,7 @@ namespace LibreriaConexion
                 #endregion
 
                 if (cxnErr.CodError != 0)
-                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + "Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Error: " + cxnErr.CodError + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
                 else
                 {
                     ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA:\n ", lvlLogCxn, TimeStampLog);
@@ -1548,8 +1548,14 @@ namespace LibreriaConexion
         #region ENVIO Y RECEPCION
         public void Enviar(byte[] aEnviar, EnumPaquete tipo, ushort orden, int intentos = 0)
         {
-            if (TransacManager.ProtoConfig.NACK_ENV == NackEnv.SINERROR)            
-                ModuloDeRegistro.LogBuffer(aEnviar, "Envia " + tipo.ToString() + " ( " + aEnviar.Length.ToString() + "b )", aEnviar.Length, lvlLogTransaccion);
+            ModuloDeRegistro.RegistrarMensaje("// ENVIA ////////////////////////////////////////////////////////////\n", NLog.LogLevel.Info, false);
+            if (TransacManager.ProtoConfig.NACK_ENV == NackEnv.SINERROR)
+            {
+                var label = tipo == EnumPaquete.DATOS 
+                    ? "Mensaje " + Encoding.UTF8.GetChars(aEnviar, 0, 1).FirstOrDefault().ToString()
+                    : "Envia " + tipo.ToString();
+                ModuloDeRegistro.LogBuffer(aEnviar, label + " ( " + aEnviar.Length.ToString() + "b )", aEnviar.Length, lvlLogTransaccion);
+            }
             else
                 ModuloDeRegistro.LogBuffer(aEnviar, "Envia NACK tipo " + TransacManager.ProtoConfig.NACK_ENV + " ( " + aEnviar.Length.ToString() + "b )", aEnviar.Length, lvlLogError);
 
@@ -1557,8 +1563,6 @@ namespace LibreriaConexion
             Error Err = TR.Pack(aEnviar, out aEnviar4, tipo, orden);
 
             if (Err.CodError != 0) { }
-
-            ModuloDeRegistro.LogBuffer(aEnviar4, "Enmascarado ( " + aEnviar4.Length.ToString() + "b )", aEnviar4.Length, lvlLogDebug);            
 
             if (!esPorPuertoSerie)
                 bytesCount = sender.Send(aEnviar4);
@@ -1799,9 +1803,7 @@ namespace LibreriaConexion
                 }
                 #endregion
 
-                // LOG ENMASCARADO
-                ModuloDeRegistro.LogBuffer(aRecibir, "Enmascarado ( " + aRecibir.Length.ToString() + "b )", aRecibir.Length, lvlLogDebug);
-
+                ModuloDeRegistro.RegistrarMensaje("// RECIBE ///////////////////////////////////////////////////////////\n", NLog.LogLevel.Info, false);
                 byte[] salidaUnpack;
                 Err = TR.Unpack(aRecibir, out salidaUnpack);                
 
@@ -1838,8 +1840,8 @@ namespace LibreriaConexion
                     ModuloDeRegistro.RegistrarMensaje("Recibe ACK INESPERADO en " + tipoMen, NLog.LogLevel.Warn, TimeStampLog);
                     return objMensaje;
                 }
-
-                ModuloDeRegistro.LogBuffer(salidaUnpack, "Recibe " + tipoMen.Substring(0, 1) + " ( " + salidaUnpack.Length.ToString() + "b )", salidaUnpack.Length, lvlLogTransaccion);
+                                
+                ModuloDeRegistro.LogBuffer(salidaUnpack, "Mensaje " + tipoMen.Substring(0, 1) + " ( " + salidaUnpack.Length.ToString() + "b )", salidaUnpack.Length, lvlLogTransaccion);
 
                 #endregion
             }

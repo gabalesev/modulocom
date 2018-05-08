@@ -44,6 +44,9 @@
     <Reference Include="MonoLibrary">
       <HintPath>C:\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
     </Reference>
+    <Reference Include="NLog">
+      <HintPath>C:\SERVICIOS\dlls\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="SqlManager">
       <HintPath>C:\SERVICIOS\dlls\SqlManager.dll</HintPath>
     </Reference>
@@ -63,9 +66,14 @@
     <Compile Include="Empaquetador.cs" />
     <Compile Include="Enmascarador.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ProtocoloApuesta.cs" />
     <Compile Include="ProtocoloConfig.cs" />
     <Compile Include="TransacManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LoggerLib\LibreriaRegistro.csproj">
+      <Project>{e98f4e55-2600-41ab-ae64-f6caaf3dd28b}</Project>
+      <Name>LibreriaRegistro</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
