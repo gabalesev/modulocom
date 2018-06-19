@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using LibreriaConexion;
+using LibreriaModuloTransaccional;
 using System.Collections;
 using LibreriaClases.Clases;
 using LibreriaClases;

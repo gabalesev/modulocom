@@ -3,7 +3,7 @@ using LibreriaClases;
 using System;
 using System.Net;
 
-namespace LibreriaProtocolo
+namespace LibreriaMetodologia
 {
     public class ProtocoloConfig
     {

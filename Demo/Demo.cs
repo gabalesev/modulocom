@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using LibreriaClases;
 using LibreriaClases.Clases;
-using LibreriaConexion;
+using LibreriaModuloTransaccional;
 using BinConfig;
 using System.Collections;
 

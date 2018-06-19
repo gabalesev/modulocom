@@ -1,22 +1,19 @@
 ﻿using LibreriaClases;
 using LibreriaClases.Clases;
 using LibreriaRegistro;
-using LibreriaProtocolo;
+using LibreriaMetodologia;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LibreriaConexion
+namespace LibreriaModuloTransaccional
 {
     partial class Comunicacion
     {
         // TRANSACCIONES
         public IList InteraccionAB(ref Terminal datosA, bool interno = false)
         {
-            Conexion cxn = new Conexion();
+            GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
             IList objs = new List<object>();
             try
             {

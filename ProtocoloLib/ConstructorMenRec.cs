@@ -5,7 +5,7 @@ using System.Collections;
 using LibreriaClases;
 using LibreriaClases.Clases;
 
-namespace LibreriaProtocolo
+namespace LibreriaMetodologia
 {
     static class ConstructorMenRec
     {
