@@ -25,18 +25,21 @@ namespace LibreriaProtocolo
            // string idBody3 = "T";
             string datos3 = UltimaCon[2];
 
-            //Fecha/Hora real con ceros agregados si fuese necesario
-            string dia, mes, anio, hora, min, seg;
-            if ((Convert.ToString(ter.FechaHora.Day).Length < 2)) { dia = "0" + Convert.ToString(ter.FechaHora.Day); } else { dia = Convert.ToString(ter.FechaHora.Day); }
-            if ((Convert.ToString(ter.FechaHora.Month).Length < 2)) { mes = "0" + Convert.ToString(ter.FechaHora.Month); } else { mes = Convert.ToString(ter.FechaHora.Month); }
-            if ((Convert.ToString(ter.FechaHora.Year).Length > 2)) { anio = Convert.ToString(ter.FechaHora.Year).Remove(0, 2); } else { anio = Convert.ToString(ter.FechaHora.Year); }
-            if ((Convert.ToString(ter.FechaHora.Hour).Length < 2)) { hora = "0" + Convert.ToString(ter.FechaHora.Hour); } else { hora = Convert.ToString(ter.FechaHora.Hour); }
-            if ((Convert.ToString(ter.FechaHora.Minute).Length < 2)) { min = "0" + Convert.ToString(ter.FechaHora.Minute); } else { min = Convert.ToString(ter.FechaHora.Minute); }
-            if ((Convert.ToString(ter.FechaHora.Second).Length < 2)) { seg = "0" + Convert.ToString(ter.FechaHora.Second); } else { seg = Convert.ToString(ter.FechaHora.Second); }                       
+            ////Fecha/Hora real con ceros agregados si fuese necesario
+            //string dia, mes, anio, hora, min, seg;
+            //if ((Convert.ToString(ter.FechaHora.Day).Length < 2)) { dia = "0" + Convert.ToString(ter.FechaHora.Day); } else { dia = Convert.ToString(ter.FechaHora.Day); }
+            //if ((Convert.ToString(ter.FechaHora.Month).Length < 2)) { mes = "0" + Convert.ToString(ter.FechaHora.Month); } else { mes = Convert.ToString(ter.FechaHora.Month); }
+            //if ((Convert.ToString(ter.FechaHora.Year).Length > 2)) { anio = Convert.ToString(ter.FechaHora.Year).Remove(0, 2); } else { anio = Convert.ToString(ter.FechaHora.Year); }
+            //if ((Convert.ToString(ter.FechaHora.Hour).Length < 2)) { hora = "0" + Convert.ToString(ter.FechaHora.Hour); } else { hora = Convert.ToString(ter.FechaHora.Hour); }
+            //if ((Convert.ToString(ter.FechaHora.Minute).Length < 2)) { min = "0" + Convert.ToString(ter.FechaHora.Minute); } else { min = Convert.ToString(ter.FechaHora.Minute); }
+            //if ((Convert.ToString(ter.FechaHora.Second).Length < 2)) { seg = "0" + Convert.ToString(ter.FechaHora.Second); } else { seg = Convert.ToString(ter.FechaHora.Second); }
             #endregion
 
+            var fechHoraConFormato = ter.FechaHora.ToString("ddMMyyHHmmss");
+
             //header
-            byte[] pacHead = DataConverter.Pack("^$8SbbII$8$8$8$8$8$8S", "A", 0, (int)TransacManager.ProtoConfig.TIPO_CXN, ter.Tipo, ter.Tarjeta, ter.NumeroTerminal, dia, mes, anio, hora, min, seg, ter.Version);
+            byte[] pacHead = DataConverter.Pack("^$8SbbII$8S", "A", 0, (int)TransacManager.ProtoConfig.TIPO_CXN, ter.Tipo, ter.Tarjeta, ter.NumeroTerminal,
+                fechHoraConFormato, ter.Version);
             byte[] pacSal1 = new byte[1024];
             
             TARJETA = ter.Tarjeta;           
