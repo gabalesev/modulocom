@@ -29,7 +29,7 @@ namespace LibreriaMetodologia
         {
             if (longent > entrada.Length)
             {
-                TransacManager.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
                 return new Error("Error protocolo: longitud incorrecta.", (int)ErrProtocolo.LONGITUD, 0);
             }
 
@@ -42,7 +42,7 @@ namespace LibreriaMetodologia
                     int index = buscaEnArr(reemp, entrada[i + 1]);
                     if (index == -1)
                     {
-                        TransacManager.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                        GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
                         return new Error("Error protocolo: mascara incorrecta.", (int)ErrProtocolo.LONGITUD, 0);
                     }
 

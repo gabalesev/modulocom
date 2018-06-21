@@ -59,21 +59,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Conexion.cs" />
+    <Compile Include="GestorArchivoConfiguracionConexion.cs" />
     <Compile Include="ConstructorMenEnv.cs" />
     <Compile Include="ConstructorMenRec.cs" />
     <Compile Include="Crc16Ccitt.cs" />
     <Compile Include="Empaquetador.cs" />
     <Compile Include="Enmascarador.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ProtocoloConfig.cs" />
-    <Compile Include="TransacManager.cs" />
+    <Compile Include="MetodologiaConfig.cs" />
+    <Compile Include="GestorTransacciones.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LoggerLib\LibreriaRegistro.csproj">
       <Project>{e98f4e55-2600-41ab-ae64-f6caaf3dd28b}</Project>
       <Name>LibreriaRegistro</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LibreriaMetodologia.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

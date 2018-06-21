@@ -19,7 +19,7 @@ namespace LibreriaMetodologia
 
             if (longent != entrada.Length)
             {
-                TransacManager.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
                 salida = null;
                 return new Error("Error protocolo: longitud incorrecta.", (int)ErrProtocolo.LONGITUD, 0);
             }
@@ -57,19 +57,19 @@ namespace LibreriaMetodologia
             int lon = Conversiones.AgregaDigito16(entrada, 4); // dat.GetInt16(dig, 0);
             if (lon != entrada.Length)
             {
-                TransacManager.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
                 return new Error("Error protocolo: longitud incorrecta.", (int)ErrProtocolo.LONGITUD, 0);
             }
 
             if (entrada[0] != INI_PAQ)
             {
-                TransacManager.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
                 return new Error("Error protocolo: Inicio de paquete invalido.", (int)ErrProtocolo.INICIO, 0);
             }
 
             if(entrada[entrada.Length - 1] != FIN_PAQ)
             {
-                TransacManager.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
                 return new Error("Error protocolo: Fin de paquete invalido.", (int)ErrProtocolo.FIN, 0);
             }
 
@@ -101,7 +101,7 @@ namespace LibreriaMetodologia
             }
             else
             {                
-                TransacManager.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
                 salida = null;
                 return new Error("Error de protocolo: tipo paquete incorrecto.", (int)ErrProtocolo.TIPO_PAQUETE, 0);
             }

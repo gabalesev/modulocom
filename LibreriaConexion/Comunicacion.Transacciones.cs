@@ -19,11 +19,11 @@ namespace LibreriaModuloTransaccional
             {
                 TR.ordenAckE = 0;
                 TR.ordenMsgNackE = 0;
-                TransacManager.ProtoConfig.NACK_ENV = NackEnv.SINERROR;
+                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.SINERROR;
 
-                datosA.Tipo = TransacManager.ProtoConfig.BASE_CONFIG.TerminalModelo;
+                datosA.Tipo = GestorTransacciones.ProtoConfig.BASE_CONFIG.TerminalModelo;
 
-                Enviar(ConstructorMenEnv.crearA_Logueo(datosA, UltimaConexionOptima, TransacManager.ProtoConfig.LOCAL_IP), EnumPaquete.DATOS, TR.ordenMsgNackE);
+                Enviar(ConstructorMenEnv.crearA_Logueo(datosA, UltimaConexionOptima, GestorTransacciones.ProtoConfig.LOCAL_IP), EnumPaquete.DATOS, TR.ordenMsgNackE);
 
                 TR.ordenMsgNackE++;
                 Errorof errOf = new Errorof();
@@ -31,7 +31,7 @@ namespace LibreriaModuloTransaccional
                 //Recibo Mensaje B y envío ACK o NACK
                 do
                 {
-                    bytes = new byte[ProtocoloConfig.TamBuffer];
+                    bytes = new byte[MetodologiaConfig.TamBuffer];
                     objs = Recibir(bytes, 2, 0, "B");
 
                     //atrapa errores de recepción
@@ -46,7 +46,7 @@ namespace LibreriaModuloTransaccional
                     }
 
                 }
-                while (TransacManager.ProtoConfig.NACK_ENV != NackEnv.SINERROR);
+                while (GestorTransacciones.ProtoConfig.NACK_ENV != NackEnv.SINERROR);
 
                 if (objs == null || objs.Count == 0)
                 {
@@ -64,7 +64,7 @@ namespace LibreriaModuloTransaccional
                         if (obj is PRN)
                         {
                             cxn.crear_XMLprn(((PRN)obj).Nombre1, ((PRN)obj).Nombre2, ((PRN)obj).Nombre3, ((PRN)obj).Port1, ((PRN)obj).Port2, ((PRN)obj).Port3,
-                                ((PRN)obj).Telefono1, ((PRN)obj).Telefono2, ((PRN)obj).Telefono3, TransacManager.ProtoConfig.CONFIG);
+                                ((PRN)obj).Telefono1, ((PRN)obj).Telefono2, ((PRN)obj).Telefono3, GestorTransacciones.ProtoConfig.CONFIG);
                         }
                         else if (obj is Error)
                             ((Error)objs[0]).Estado = 0;
@@ -93,13 +93,13 @@ namespace LibreriaModuloTransaccional
 
                     if (interno)
                     {
-                        cxn.crear_XMLprn(prn.Nombre1, prn.Nombre2, prn.Nombre3, prn.Port1, prn.Port2, prn.Port3, prn.Telefono1, prn.Telefono2, prn.Telefono3, TransacManager.ProtoConfig.CONFIG);
+                        cxn.crear_XMLprn(prn.Nombre1, prn.Nombre2, prn.Nombre3, prn.Port1, prn.Port2, prn.Port3, prn.Telefono1, prn.Telefono2, prn.Telefono3, GestorTransacciones.ProtoConfig.CONFIG);
                         Desconectar(interno);
                         return objs;
                     }
                     else
                     {
-                        cxn.crear_XMLprn(prn.Nombre1, prn.Nombre2, prn.Nombre3, prn.Port1, prn.Port2, prn.Port3, prn.Telefono1, prn.Telefono2, prn.Telefono3, TransacManager.ProtoConfig.CONFIG);
+                        cxn.crear_XMLprn(prn.Nombre1, prn.Nombre2, prn.Nombre3, prn.Port1, prn.Port2, prn.Port3, prn.Telefono1, prn.Telefono2, prn.Telefono3, GestorTransacciones.ProtoConfig.CONFIG);
                     }
                 }
 

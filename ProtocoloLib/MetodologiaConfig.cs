@@ -5,7 +5,7 @@ using System.Net;
 
 namespace LibreriaMetodologia
 {
-    public class ProtocoloConfig
+    public class MetodologiaConfig
     {
         public ArchivoConfig CONFIG { get; set; }
         public BaseConfig BASE_CONFIG { get; set; }
@@ -27,7 +27,7 @@ namespace LibreriaMetodologia
         
         public byte[] PROTOCOLO;
 
-        public ProtocoloConfig(BaseConfig baseConf, ArchivoConfig conf, bool conCicloPRN = true)
+        public MetodologiaConfig(BaseConfig baseConf, ArchivoConfig conf, bool conCicloPRN = true)
         {            
             nroOff = new SerialNumeroOff();
 
@@ -40,7 +40,7 @@ namespace LibreriaMetodologia
             string nroTerStr = BASE_CONFIG.Terminal.ToString();
             LOCAL_PORT = Convert.ToUInt16("5" + nroTerStr.Substring(nroTerStr.Length - 4, 4));                        
         }
-        public ProtocoloConfig(ArchivoConfig conf)
+        public MetodologiaConfig(ArchivoConfig conf)
         {            
             CONFIG = conf;         
         }        

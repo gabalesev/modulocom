@@ -254,7 +254,7 @@ namespace LibreriaMetodologia
 
                 //Certificado ft = new Certificado();
 
-                transaccRta.Protocolo = TransacManager.ProtoConfig.PROTOCOLO;
+                transaccRta.Protocolo = GestorTransacciones.ProtoConfig.PROTOCOLO;
                 //Si se le pasa con CDs y TARJETA no funciona, aunque pasemos la longitud del protocolo sin contar los CDs y 
                 //TARJETA, da la misma excepcion de incompatibilidad de longitudes.
                 //ft.CertificadoQuiniela(Comunicacion.PROTOCOLO, Comunicacion.CLAVE_TARJETA, Comunicacion, ref transaccRta.Certificado, (int)EnumCertificado.TIPOCHECK,

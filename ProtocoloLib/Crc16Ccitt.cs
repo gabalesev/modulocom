@@ -81,7 +81,7 @@ namespace LibreriaMetodologia
             }
             else
             {
-                TransacManager.ProtoConfig.NACK_ENV = NackEnv.CRC;
+                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.CRC;
                 return false;
             }
         }

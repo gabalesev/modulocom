@@ -8,11 +8,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace LibreriaMetodologia
 {
-    public class TransacManager
+    public class GestorTransacciones
     {
         #region Propiedades
 
@@ -27,7 +26,7 @@ namespace LibreriaMetodologia
 
         public EnumTipoTransaccion TipoTransaccion { get; set; }
 
-        public static ProtocoloConfig ProtoConfig { get; set; } 
+        public static MetodologiaConfig ProtoConfig { get; set; } 
 
         #endregion
 
@@ -43,7 +42,7 @@ namespace LibreriaMetodologia
             if (entrada == null)            
                 return new Error("Buffer a enviar nulo.", (int)ErrProtocolo.PARAM_NULO_INVALIDO , 0);
 
-            Enmascarador enmask = new Enmascarador(TransacManager.ProtoConfig.CONFIG);
+            Enmascarador enmask = new Enmascarador(GestorTransacciones.ProtoConfig.CONFIG);
             Crc16Ccitt crc = new Crc16Ccitt(0);
             Empaquetador emp = new Empaquetador();
 
@@ -55,7 +54,7 @@ namespace LibreriaMetodologia
 
             byte[] aEnviar3;
 
-            if (TransacManager.ProtoConfig.NACK_ENV == NackEnv.SINERROR)
+            if (GestorTransacciones.ProtoConfig.NACK_ENV == NackEnv.SINERROR)
             {
                 byte[] aEnviar2;
                 Error Err = emp.Empaqueta(entrada, out aEnviar2, entrada.Length, tipo, orden);
@@ -84,7 +83,7 @@ namespace LibreriaMetodologia
             else // envio NACK con el tipo de error (TransacManager.ProtoConfig.NACK_ENV)
             {
                 byte[] nac = new byte[1];
-                nac = ConstructorMenEnv.crearNack((byte)TransacManager.ProtoConfig.NACK_ENV);
+                nac = ConstructorMenEnv.crearNack((byte)GestorTransacciones.ProtoConfig.NACK_ENV);
 
                 byte[] aEnviar2;                
                 Error Err = emp.Empaqueta(nac, out aEnviar2, nac.Length, EnumPaquete.NACK, orden);
@@ -147,7 +146,7 @@ namespace LibreriaMetodologia
             }
             else
             {
-                TransacManager.ProtoConfig.NACK_ENV = NackEnv.CRC;
+                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.CRC;
                 salida = null;
                 return new Error("Error protocolo: CRC recibido inválido.", (int)ErrProtocolo.CRC, 0);
             }
