@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Text;
-using System.Net;
-using System.Net.Sockets;
-using System.Security.Permissions;
-using System.Net.NetworkInformation;
 using MonoLibrary;
-using System.Collections;
 using LibreriaClases;
 using LibreriaClases.Clases;
 
-namespace LibreriaProtocolo
+namespace LibreriaMetodologia
 {
     public class Empaquetador
     {

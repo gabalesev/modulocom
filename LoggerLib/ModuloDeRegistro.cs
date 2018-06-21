@@ -8,6 +8,9 @@ using System.Text;
 
 namespace LibreriaRegistro
 {
+    /// <summary>
+    /// Clase para el registro de datos y mensajes. Permite, además, configurar y dar formato al registro de los datos y mensajes.
+    /// </summary>
     public static class ModuloDeRegistro
     {
         private static readonly Logger registrador = LogManager.GetCurrentClassLogger();
@@ -18,10 +21,16 @@ namespace LibreriaRegistro
 
         private static LogLevel NIVEL_DE_REGISTRO;
 
-
-        public static void InicializaRegistrador(string directorioBase, int longitudMaxima, LogLevel nivelRegistro, string nombreArchivo)
+        /// <summary>
+        /// Inicializa el registrador
+        /// </summary>
+        /// <param name="directorioBase"> Ruta en la cual se almacenaran los archivos de registro</param>
+        /// <param name="longitudMaxima"> Longitud a partir de la cual se creará otro archivo de registro</param>
+        /// <param name="nivelRegistroGlobal"> Nivel de registrador global que determinará hasta que nivel se registrará</param>
+        /// <param name="nombreArchivo"> Nombre base que tendrá el archivo de registro</param>
+        public static void InicializaRegistrador(string directorioBase, int longitudMaxima, LogLevel nivelRegistroGlobal, string nombreArchivo)
         {
-            NIVEL_DE_REGISTRO = nivelRegistro;
+            NIVEL_DE_REGISTRO = nivelRegistroGlobal;
 
             if (!Directory.Exists(directorioBase))
             {
@@ -42,8 +51,8 @@ namespace LibreriaRegistro
                 ArchiveNumbering = ArchiveNumberingMode.Sequence
             };
             
-            var reglaConsola = new LoggingRule("*", nivelRegistro, consolaDeRegistro);
-            var reglaArchivo = new LoggingRule("*", nivelRegistro, archivoDeRegistro);
+            var reglaConsola = new LoggingRule("*", nivelRegistroGlobal, consolaDeRegistro);
+            var reglaArchivo = new LoggingRule("*", nivelRegistroGlobal, archivoDeRegistro);
 
             LoggingConfiguration confLog = new LoggingConfiguration();
             confLog.AddTarget("console", consolaDeRegistro);
@@ -84,9 +93,9 @@ namespace LibreriaRegistro
         /// Registra un buffer de datos        
         /// </summary>
         /// <param name="buffer">Contenido principal</param>
-        /// <param name="titulo">Titulo que </param>
+        /// <param name="titulo">Titulo para el bloque de datos </param>
         /// <param name="longitudBufferUsado">Longitud del buffer</param>
-        /// <param name="nivelLog">Nivel del registrador</param>
+        /// <param name="nivelLog">Nivel del registrador para este registro </param>
         public static void LogBuffer(byte[] bufferInBytes, string titulo, int longitudBufferUsado, LogLevel nivelLog)
         {
             var buffer = byteToChar(bufferInBytes);

@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
 using System.IO;
-using BinConfig;
 using LibreriaClases;
-using LibreriaClases.Clases;
 
-
-namespace LibreriaProtocolo
+namespace LibreriaMetodologia
 {
-    public class Conexion
+    public class GestorArchivoConfiguracionConexion
     {
 
         public string crear_XMLprn(string nombre1, string nombre2, string nombre3, string port1, string port2, string port3, string tel1, string tel2, string tel3, ArchivoConfig conf)

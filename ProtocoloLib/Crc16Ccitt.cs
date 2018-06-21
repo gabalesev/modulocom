@@ -8,7 +8,7 @@ using MonoLibrary;
 using System.Collections;
 using LibreriaClases;
 
-namespace LibreriaProtocolo
+namespace LibreriaMetodologia
 {
     public class Crc16Ccitt
     {

@@ -11,11 +11,11 @@ using BinConfig;
 using System.IO.Ports;
 using DotRas;
 using System.Linq;
-using LibreriaProtocolo;
+using LibreriaMetodologia;
 using LibreriaRegistro;
 using System.Text;
 
-namespace LibreriaConexion
+namespace LibreriaModuloTransaccional
 {
     public partial class Comunicacion: IDisposable
     {
@@ -304,7 +304,7 @@ namespace LibreriaConexion
         {
             string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
 
-            Conexion cxn = new Conexion();
+            GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
             Error cxnErr = new Error();
             IPHostEntry ipHost;
             IPAddress ipAddr;
@@ -596,7 +596,7 @@ namespace LibreriaConexion
         {
             //string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
 
-            Conexion cxn = new Conexion();
+            GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
             Error cxnErr = new Error();
             // IPHostEntry ipHost;
             IPAddress ipAddr;
@@ -714,7 +714,7 @@ namespace LibreriaConexion
 
             string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
 
-            Conexion cxn = new Conexion();
+            GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
             
                 string rdo = cxn.Leer_XMLprn(out nombre1, out nombre2, out nombre3, out port1, out  port2, out port3, out tel1, out tel2, out tel3, TransacManager.ProtoConfig.CONFIG);
                 string[] tel = new string[4];
@@ -1085,7 +1085,7 @@ namespace LibreriaConexion
         {
             string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
 
-            Conexion cxn = new Conexion();
+            GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
             Error cxnErr = new Error();
 
             try
@@ -1305,7 +1305,7 @@ namespace LibreriaConexion
         {
             string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
 
-            Conexion cxn = new Conexion();
+            GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
             Error cxnErr = new Error();
 
             try

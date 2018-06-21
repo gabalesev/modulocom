@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreriaConexion", "LibreriaConexion\LibreriaConexion.csproj", "{FC6385A6-4581-4799-B862-0575D36A0E0B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreriaModuloTransaccional", "LibreriaConexion\LibreriaModuloTransaccional.csproj", "{FC6385A6-4581-4799-B862-0575D36A0E0B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prueba4", "Prueba4\Prueba4.csproj", "{2507A89F-5AD4-4E5A-B0B6-BF26EFB2C80A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreriaProtocolo", "ProtocoloLib\LibreriaProtocolo.csproj", "{B049192A-0AC8-4C35-9EBD-9609C16A61F0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreriaMetodologia", "ProtocoloLib\LibreriaMetodologia.csproj", "{B049192A-0AC8-4C35-9EBD-9609C16A61F0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreriaRegistro", "LoggerLib\LibreriaRegistro.csproj", "{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}"
 EndProject
@@ -80,5 +80,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E1C9735C-3573-4D0A-9986-53F315B33D47}
 	EndGlobalSection
 EndGlobal

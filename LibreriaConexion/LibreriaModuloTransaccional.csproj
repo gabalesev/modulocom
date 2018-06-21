@@ -48,8 +48,9 @@
     <Reference Include="DotRas">
       <HintPath>C:\SERVICIOS\dlls\DotRas.dll</HintPath>
     </Reference>
-    <Reference Include="LibreriaClases">
-      <HintPath>C:\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
+    <Reference Include="LibreriaClases, Version=1.0.14.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
     <Reference Include="LoggerLib">
       <HintPath>..\LoggerLib\bin\Debug\LoggerLib.dll</HintPath>

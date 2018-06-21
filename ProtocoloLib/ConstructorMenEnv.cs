@@ -6,7 +6,7 @@ using System.Collections;
 using System.Linq;
 using System.Text;
 
-namespace LibreriaProtocolo
+namespace LibreriaMetodologia
 {
     public static class ConstructorMenEnv
     {
