@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="LibreriaMetodologia.GestorArchivoConfiguracionConexion">
+    <Position X="6.75" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAAAIAAAAAAAAAAAAAAAAAAAAAAIAA=</HashCode>
+      <FileName>GestorArchivoConfiguracionConexion.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LibreriaMetodologia.ConstructorMenEnv">
+    <Position X="0.5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAAAAAAAAAAAgAAAAEAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ConstructorMenEnv.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LibreriaMetodologia.ConstructorMenRec">
+    <Position X="3.5" Y="0.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAIgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ConstructorMenRec.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LibreriaMetodologia.Empaquetador">
+    <Position X="8" Y="2.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAAAAAIAAgCAAAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Empaquetador.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LibreriaMetodologia.Enmascarador">
+    <Position X="10.5" Y="2.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQgAAIAAAAQAAAAAAAAAAAAAAAAAAAAAAACAAAA=</HashCode>
+      <FileName>Enmascarador.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LibreriaMetodologia.ConfiguracionComunicacion">
+    <Position X="0.5" Y="2.75" Width="5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAQAIAAAAAgBAAAAAAAAAQABAAAABAARAAAA=</HashCode>
+      <FileName>ConfiguracionComunicacion.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LibreriaMetodologia.GestorTransacciones">
+    <Position X="4.5" Y="2.5" Width="3.25" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAIYAAAQAAAAAAAEAgAgAAIAgQQAAAAAAAAI=</HashCode>
+      <FileName>GestorTransacciones.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

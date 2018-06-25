@@ -10,7 +10,7 @@ namespace LibreriaMetodologia
     public class GestorArchivoConfiguracionConexion
     {
 
-        public string crear_XMLprn(string nombre1, string nombre2, string nombre3, string port1, string port2, string port3, string tel1, string tel2, string tel3, ArchivoConfig conf)
+        public string Crear_XMLprn(string nombre1, string nombre2, string nombre3, string port1, string port2, string port3, string tel1, string tel2, string tel3, ArchivoConfig conf)
         {
 
             try

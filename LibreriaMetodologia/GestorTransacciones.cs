@@ -1,7 +1,7 @@
-﻿using BinConfig;
-using LibreriaClases;
+﻿using LibreriaClases;
 using LibreriaClases.Clases;
 using LibreriaRegistro;
+using LibreriaConversiones;
 using MonoLibrary;
 using System;
 using System.Collections;
@@ -15,46 +15,65 @@ namespace LibreriaMetodologia
     {
         #region Propiedades
 
-        //SECUENCIAS PARA ENVIAR Y DE CONTROL DE PAQUETES RECIBIDOS
-        public ushort ordenAckE = 0, ordenMsgNackE = 0, ordenAckR = 0, ordenMsgNackR = 0; 
+        // SECUENCIAS ACK Y NACK A ENVIAR
+        public ushort ordenAckE = 0, ordenMsgNackE = 0;
 
-        public EnumPaquete TipoPaqueteEntrada { get; set; }
-        public EnumPaquete TipoPaqueteSalida { get; set; }
+        // SECUENCIAS ACK Y NACK A RECIBIR
+        public ushort ordenAckR = 0, ordenMsgNackR = 0;
 
-        public int EntradaLength { get; set; }
-        public int SalidaLength { get; set; }        
+        public EnumPaquete TipoPaqueteEntrada { get; private set; }
+        public EnumPaquete TipoPaqueteSalida { get; private set; }
 
-        public EnumTipoTransaccion TipoTransaccion { get; set; }
+        public int EntradaLength { get; private set; }
+        public int SalidaLength { get; private set; }
 
-        public static MetodologiaConfig ProtoConfig { get; set; } 
+        public static ConfiguracionComunicacion ConfiguracionComunicacion { get; set; }
 
         #endregion
 
         #region Metodos
 
-        public Error Pack(byte[] entrada, out byte[] salida, EnumPaquete tipo, ushort orden)
+        public Error Pack(Terminal terminal, string[] ultimaConexion, out byte[] salida, EnumPaquete tipo, ushort orden)
         {
+            byte[] entrada = { };
+
+            if (terminal != null && GestorTransacciones.ConfiguracionComunicacion.NackEnvio == NackEnv.SINERROR)
+            {
+                entrada = ConstructorMenEnv.CrearA(terminal, ultimaConexion, GestorTransacciones.ConfiguracionComunicacion.LocalIP);
+
+                var label = tipo == EnumPaquete.DATOS
+                ? "Mensaje " + Encoding.UTF8.GetChars(entrada, 0, 1).FirstOrDefault().ToString()
+                : "Envia " + tipo.ToString();
+                ModuloDeRegistro.LogBuffer(entrada, label + " ( " + entrada.Length.ToString() + "b )", entrada.Length, NLog.LogLevel.Info);
+            }
+            else
+                ModuloDeRegistro.LogBuffer(entrada, "Envia NACK tipo " + ConfiguracionComunicacion.NackEnvio + " ( " + entrada.Length.ToString() + "b )", entrada.Length, NLog.LogLevel.Error);
+
+            TipoPaqueteSalida = tipo;
+
             if (tipo == EnumPaquete.ACK || tipo == EnumPaquete.EOT)
                 salida = new byte[256];
             else
                 salida = new byte[(entrada.Length * 2) + 9];
 
-            if (entrada == null)            
-                return new Error("Buffer a enviar nulo.", (int)ErrProtocolo.PARAM_NULO_INVALIDO , 0);
+            if (entrada == null)
+                return new Error("Buffer a enviar nulo.", (int)ErrProtocolo.PARAM_NULO_INVALIDO, 0);
 
-            Enmascarador enmask = new Enmascarador(GestorTransacciones.ProtoConfig.CONFIG);
-            Crc16Ccitt crc = new Crc16Ccitt(0);
+            Enmascarador enmask = new Enmascarador(GestorTransacciones.ConfiguracionComunicacion.Configuracion);
+            CRC16CCITT crc = new CRC16CCITT(0);
             Empaquetador emp = new Empaquetador();
 
             string tipoMen = "";
-            if (tipo == EnumPaquete.DATOS) tipoMen = Encoding.UTF8.GetString(entrada, 0, 1);
-            else tipoMen = tipo.ToString();
+            if (tipo == EnumPaquete.DATOS)
+                tipoMen = Encoding.UTF8.GetString(entrada, 0, 1);
+            else
+                tipoMen = tipo.ToString();
 
             int longi = 0;
 
             byte[] aEnviar3;
 
-            if (GestorTransacciones.ProtoConfig.NACK_ENV == NackEnv.SINERROR)
+            if (GestorTransacciones.ConfiguracionComunicacion.NackEnvio == NackEnv.SINERROR)
             {
                 byte[] aEnviar2;
                 Error Err = emp.Empaqueta(entrada, out aEnviar2, entrada.Length, tipo, orden);
@@ -64,33 +83,25 @@ namespace LibreriaMetodologia
                 if (Err.CodError != 0)
                     return Err;
 
-                //aEnviar3 = crc.AddCrcToBuffer(aEnviar2, aEnviar2.Length);
                 longi = 0;
 
-                // entrada no se usa, para que estaba esto??
-                //entrada = new byte[aEnviar3.Length + 1]; 
-                //entrada = aEnviar3;
-                //Array.Resize(ref entrada, aEnviar3.Length + 1);
-                //entrada[aEnviar3.Length] = 0x03;
-
                 enmask.Enmascara(aEnviar2, aEnviar2.Length, ref salida, ref longi);
-                //salida[longi] = Empaquetador.;
-                //longi++;
+
                 Array.Resize(ref salida, longi);
 
                 ModuloDeRegistro.LogBuffer(salida, "Enmascarado ( " + salida.Length.ToString() + "b )", salida.Length, NLog.LogLevel.Debug);
             }
-            else // envio NACK con el tipo de error (TransacManager.ProtoConfig.NACK_ENV)
+            else // envia NACK con el tipo de error 
             {
                 byte[] nac = new byte[1];
-                nac = ConstructorMenEnv.crearNack((byte)GestorTransacciones.ProtoConfig.NACK_ENV);
+                nac = ConstructorMenEnv.CrearNack((byte)GestorTransacciones.ConfiguracionComunicacion.NackEnvio);
 
-                byte[] aEnviar2;                
+                byte[] aEnviar2;
                 Error Err = emp.Empaqueta(nac, out aEnviar2, nac.Length, EnumPaquete.NACK, orden);
                 if (Err.CodError != 0)
                     return Err;
 
-                aEnviar3 = crc.AddCrcToBuffer(aEnviar2, aEnviar2.Length);
+                aEnviar3 = crc.AgregaCRCAlBuffer(aEnviar2, aEnviar2.Length);
                 longi = 0;
 
                 entrada = new byte[aEnviar3.Length + 1];
@@ -101,7 +112,7 @@ namespace LibreriaMetodologia
                 enmask.Enmascara(aEnviar3, aEnviar3.Length, ref salida, ref longi);
                 salida[longi] = 0x03;
                 longi++;
-                Array.Resize(ref salida, longi);               
+                Array.Resize(ref salida, longi);
             }
 
             return new Error();
@@ -109,8 +120,8 @@ namespace LibreriaMetodologia
 
         public Error Unpack(byte[] entrada, out byte[] salida)
         {
-            Enmascarador enmask = new Enmascarador(ProtoConfig.CONFIG);
-            Crc16Ccitt crc = new Crc16Ccitt(0);
+            Enmascarador enmask = new Enmascarador(ConfiguracionComunicacion.Configuracion);
+            CRC16CCITT crc = new CRC16CCITT(0);
             Empaquetador emp = new Empaquetador();
 
             int lonMenR = 0;
@@ -131,39 +142,49 @@ namespace LibreriaMetodologia
             }
             else
                 menRArr = new byte[entrada.Length];
-            
+
             ModuloDeRegistro.LogBuffer(entrada, "Enmascarado ( " + entrada.Length.ToString() + "b )", entrada.Length, NLog.LogLevel.Debug);
 
             enmask.Desenmascara(entrada, entrada.Length, ref menRArr, ref lonMenR);
 
             ModuloDeRegistro.LogBuffer(menRArr, "Empaquetado ( " + menRArr.Length.ToString() + "b )", menRArr.Length, NLog.LogLevel.Debug);
 
-            if (crc.compruebaCrc(menRArr, lonMenR))
+            if (crc.CompruebaCRC(menRArr, lonMenR))
             {
                 Error Err = emp.Desempaqueta(menRArr, out salida, ref lonMenR, 2, ref ordenAckE);
+
+                TipoPaqueteEntrada = (EnumPaquete)Empaquetador.TipoPaqueteRecibido;
+
                 if (Err.CodError != 0)
+                {
+                    if (Err.CodError == (int)ErrProtocolo.LONGITUD ||
+                        Err.CodError == (int)ErrProtocolo.INICIO ||
+                        Err.CodError == (int)ErrProtocolo.FIN)
+                    {
+                        GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.EMPAQUETADO;
+                    }
+
                     return Err;
+                }
             }
             else
             {
-                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.CRC;
+                GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.CRC;
                 salida = null;
                 return new Error("Error protocolo: CRC recibido inválido.", (int)ErrProtocolo.CRC, 0);
             }
-            //if (CONFIG.LevelLog == EnumMessageType.DEBUG) pe.LogBuffer(byteToChar(aRecibir), "Paquete sin desenmascarar: ", 16, aRecibir.Length);
-            //pe.LogBuffer(byteToChar(menRArr), "Paquete desenmascarado: ", 16, menRArr.Length);
-            //Comunicacion.setErrorNACK(NackEnv.SINERROR);
+
             return new Error();
         }
 
         public IList MapeoObjetos(byte[] bufferRec, int tipoEsperado, ushort orden, string tipoMen)
-        {            
+        {
             #region // TipoPaqRec EOT ACK NACK
-            if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.EOT)            
+            if (Empaquetador.TipoPaqueteRecibido == (byte)EnumPaquete.EOT)
                 return new List<object>() { "Eot" };
-            else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.ACK)
+            else if (Empaquetador.TipoPaqueteRecibido == (byte)EnumPaquete.ACK)
                 return new List<object>() { "Ack" };
-            else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.NACK)
+            else if (Empaquetador.TipoPaqueteRecibido == (byte)EnumPaquete.NACK)
             {
                 if (bufferRec[0].ToString() == "i")
                     return new List<object>() { "B" };
@@ -174,13 +195,13 @@ namespace LibreriaMetodologia
 
             char letra = Encoding.UTF8.GetChars(bufferRec, 0, 1).FirstOrDefault();
 
-            if (!Char.IsLetter(letra) && Empaquetador.tipoPaqRec != (byte)EnumPaquete.DATOSMULTIPLES)
+            if (!Char.IsLetter(letra) && Empaquetador.TipoPaqueteRecibido != (byte)EnumPaquete.DATOSMULTIPLES)
                 return new List<object>() { new Error("Mensaje sin letra.", (int)ErrProtocolo.DATOS_LETRA, 1) };
             if (bufferRec.Length <= 0)
                 return new List<object>() { new Error("Mensaje sin datos.", (int)ErrProtocolo.DATOS_VACIOS, 1) };
-            if(tipoMen.Substring(0, 1).FirstOrDefault() != letra && 
-                Empaquetador.tipoPaqRec != (byte)EnumPaquete.DATOSMULTIPLES && 
-                letra != 'L' && 
+            if (tipoMen.Substring(0, 1).FirstOrDefault() != letra &&
+                Empaquetador.TipoPaqueteRecibido != (byte)EnumPaquete.DATOSMULTIPLES &&
+                letra != 'L' &&
                 letra != 'E')
                 return new List<object>() { new Error("Letra de datos incorrecta.", (int)ErrProtocolo.DATOS_LETRA, 1) };
 
@@ -192,7 +213,7 @@ namespace LibreriaMetodologia
                 //cada mensaje puede tener el cod de error en distintas posiciones
                 DataConverter codErr = DataConverter.BigEndian;
                 uint er = 0;
-                if (Empaquetador.tipoPaqRec != (byte)EnumPaquete.DATOSMULTIPLES)
+                if (Empaquetador.TipoPaqueteRecibido != (byte)EnumPaquete.DATOSMULTIPLES)
                 {
                     if (tipoMen == "B")
                     {
@@ -218,27 +239,13 @@ namespace LibreriaMetodologia
 
                 if (er == 0)
                 {
-                    ProtoConfig.NACK_ENV = NackEnv.SINERROR;                            
+                    ConfiguracionComunicacion.NackEnvio = NackEnv.SINERROR;
                     switch (tipoMen)
                     {
                         case "B": objetos = ConstructorMenRec.recibeMensajeB(bufferRec); break;
-                        case "Q1":
-                            {
-                                if (bufferRec[1] == (byte)PedidosSorteos.QUINIELA && bufferRec.Length > 29)
-                                {
-                                    objetos = ConstructorMenRec.recibeMensajeQ1_Quiniela(bufferRec);
-                                }                                
-                                else
-                                {
-                                    Error erro = new Error();
-                                    erro.CodError = 1001;
-                                    erro.Descripcion = "Error de protocolo.";
-                                    objetos.Add(erro);
-                                }
-                                break;
-                            }
-                        case "Q2": objetos = ConstructorMenRec.recibeMensajeQ2(bufferRec); break;
-                        
+
+                            // Acá podrán añadirse, a demanda, más estructuras de paquetes de datos
+
                     }
                 }
                 else if (er != 0)
@@ -246,13 +253,13 @@ namespace LibreriaMetodologia
                     switch (tipoMen)
                     {
                         case "B": objetos = ConstructorMenRec.recibeMensajeBErr(bufferRec); break;
-                        case "Q2":
-                        case "Q1": objetos = ConstructorMenRec.recibeMensajeQErr(bufferRec); break;      
+
+                            // Acá podrán añadirse, a demanda, más estructuras de paquetes de error 
                     }
                 }
             }
-            else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.NACK)
-            {                  
+            else if (Empaquetador.TipoPaqueteRecibido == (byte)EnumPaquete.NACK)
+            {
                 objetos.Add(Encoding.UTF8.GetString(bufferRec));
                 //PeTR.LogMessage("Recibe NACK causa " + Encoding.UTF8.GetString(bufferRec), EnumMessageType.ERROR);
                 return objetos;

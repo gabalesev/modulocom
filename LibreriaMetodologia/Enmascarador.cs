@@ -1,12 +1,4 @@
 ﻿using System;
-using System.Text;
-using System.Net;
-using System.Net.Sockets;
-using System.Security.Permissions;
-using System.Net.NetworkInformation;
-using MonoLibrary;
-using System.Collections;
-using BinConfig;
 using LibreriaClases;
 using LibreriaClases.Clases;
 
@@ -14,22 +6,22 @@ namespace LibreriaMetodologia
 {
     public class Enmascarador
     {
-        byte Escape;        
-        byte[] mask;
-        byte[] reemp;
+        private readonly byte Escape;
+        private readonly byte[] Mascara;
+        private readonly byte[] ValoresAEnmascarar;
 
         public Enmascarador(ArchivoConfig conf)
         {
             Escape = conf.MaskEscape;            
-            mask = conf.MaskEnmascara;
-            reemp = conf.MaskDesenmascara;
+            Mascara = conf.MaskEnmascara;
+            ValoresAEnmascarar = conf.MaskDesenmascara;
         }
 
         public Error Desenmascara(byte[] entrada, int longent, ref byte[] salida, ref int longsal)
         {
             if (longent > entrada.Length)
             {
-                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.EMPAQUETADO;
                 return new Error("Error protocolo: longitud incorrecta.", (int)ErrProtocolo.LONGITUD, 0);
             }
 
@@ -39,14 +31,14 @@ namespace LibreriaMetodologia
             {
                 if (entrada[i] == Escape)
                 {
-                    int index = buscaEnArr(reemp, entrada[i + 1]);
+                    int index = BuscaEnArr(ValoresAEnmascarar, entrada[i + 1]);
                     if (index == -1)
                     {
-                        GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                        GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.EMPAQUETADO;
                         return new Error("Error protocolo: mascara incorrecta.", (int)ErrProtocolo.LONGITUD, 0);
                     }
 
-                    salida[j] = mask[index];
+                    salida[j] = Mascara[index];
                     i = i + 2;
                     j++;
                 }
@@ -82,7 +74,7 @@ namespace LibreriaMetodologia
                 }
 
 
-                int index = buscaEnArr(mask, entrada[i]);
+                int index = BuscaEnArr(Mascara, entrada[i]);
 
                 if (index < 0)
                 {
@@ -92,7 +84,7 @@ namespace LibreriaMetodologia
                 else
                 {
                     salida[j] = Escape;
-                    salida[j + 1] = reemp[index];
+                    salida[j + 1] = ValoresAEnmascarar[index];
                     j = j + 2;
                 }
 
@@ -100,7 +92,7 @@ namespace LibreriaMetodologia
             }
 
         }
-        public int buscaEnArr(byte[] arr, byte byt)
+        private int BuscaEnArr(byte[] arr, byte byt)
         {
             for (int k = 0; k < arr.Length; k++)
             {

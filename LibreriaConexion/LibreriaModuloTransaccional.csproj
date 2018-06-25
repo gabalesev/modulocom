@@ -8,8 +8,8 @@
     <ProjectGuid>{FC6385A6-4581-4799-B862-0575D36A0E0B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LibreriaConexion</RootNamespace>
-    <AssemblyName>LibreriaConexion</AssemblyName>
+    <RootNamespace>LibreriaModuloTransaccional</RootNamespace>
+    <AssemblyName>LibreriaModuloTransaccional</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -52,18 +52,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
-    <Reference Include="LoggerLib">
-      <HintPath>..\LoggerLib\bin\Debug\LoggerLib.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoLibrary">
-      <HintPath>C:\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
+    <Reference Include="MonoLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\SERVICIOS\dlls\NLog.dll</HintPath>
-    </Reference>
-    <Reference Include="ProtocoloLib">
-      <HintPath>..\ProtocoloLib\bin\Debug\ProtocoloLib.dll</HintPath>
     </Reference>
     <Reference Include="SqlManager">
       <HintPath>C:\SERVICIOS\dlls\SqlManager.dll</HintPath>
@@ -82,6 +77,19 @@
     <Compile Include="Comunicacion.cs" />
     <Compile Include="Comunicacion.Transacciones.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LibreriaMetodologia\LibreriaMetodologia.csproj">
+      <Project>{b049192a-0ac8-4c35-9ebd-9609c16a61f0}</Project>
+      <Name>LibreriaMetodologia</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibreriaRegistro\LibreriaRegistro.csproj">
+      <Project>{e98f4e55-2600-41ab-ae64-f6caaf3dd28b}</Project>
+      <Name>LibreriaRegistro</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LibreriaModuloTransaccional.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

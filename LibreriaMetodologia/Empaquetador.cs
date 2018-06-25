@@ -2,16 +2,15 @@
 using MonoLibrary;
 using LibreriaClases;
 using LibreriaClases.Clases;
+using LibreriaConversiones;
 
 namespace LibreriaMetodologia
 {
     public class Empaquetador
     {
-        public static byte secDatosMult = (byte)DatosMultSec.FIN;
-        public static uint tamanioDatosMult = 0;
-        public static byte tipoPaqRec = 0x00;
+        public static byte TipoPaqueteRecibido = 0x00;
         private const byte INI_PAQ = 0x01;
-        public const byte FIN_PAQ = 0x03;
+        private const byte FIN_PAQ = 0x03;
 
         public Error Empaqueta(byte[] entrada, out byte[] salida, int longent, EnumPaquete tipo, ushort orden)
         {
@@ -19,7 +18,7 @@ namespace LibreriaMetodologia
 
             if (longent != entrada.Length)
             {
-                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.EMPAQUETADO;
                 salida = null;
                 return new Error("Error protocolo: longitud incorrecta.", (int)ErrProtocolo.LONGITUD, 0);
             }
@@ -37,11 +36,11 @@ namespace LibreriaMetodologia
                 Array.Copy(entrada, 0, _salida, 6, longent);
             }
 
-            Crc16Ccitt crc = new Crc16Ccitt(0);
+            CRC16CCITT crc = new CRC16CCITT(0);
 
             salida = new byte[_salida.Length + 3];
 
-            _salida = crc.AddCrcToBuffer(_salida, _salida.Length);
+            _salida = crc.AgregaCRCAlBuffer(_salida, _salida.Length);
 
             _salida.CopyTo(salida, 0);
             salida[salida.Length - 1] = FIN_PAQ;            
@@ -51,25 +50,25 @@ namespace LibreriaMetodologia
 
         public Error Desempaqueta(byte[] entrada, out byte[] salida, ref int longent, int tipo, ref ushort ordenAckEnvio )
         {
-            tipoPaqRec = entrada[1];
+            TipoPaqueteRecibido = entrada[1];
             salida = new byte[0];
 
-            int lon = Conversiones.AgregaDigito16(entrada, 4); // dat.GetInt16(dig, 0);
+            int lon = Conversiones.AgregaDigito16(entrada, 4);
             if (lon != entrada.Length)
             {
-                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.EMPAQUETADO;
                 return new Error("Error protocolo: longitud incorrecta.", (int)ErrProtocolo.LONGITUD, 0);
             }
 
             if (entrada[0] != INI_PAQ)
             {
-                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.EMPAQUETADO;
                 return new Error("Error protocolo: Inicio de paquete invalido.", (int)ErrProtocolo.INICIO, 0);
             }
 
             if(entrada[entrada.Length - 1] != FIN_PAQ)
             {
-                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.EMPAQUETADO;
                 return new Error("Error protocolo: Fin de paquete invalido.", (int)ErrProtocolo.FIN, 0);
             }
 
@@ -91,8 +90,8 @@ namespace LibreriaMetodologia
             {
                 salida = new byte[longent - 15];
 
-                secDatosMult = entrada[7];
-                tamanioDatosMult = Conversiones.AgregaDigito32(entrada, 8); //dat.GetUInt32(dig2, 0);
+                var secDatosMult = entrada[7];
+                var tamanioDatosMult = Conversiones.AgregaDigito32(entrada, 8);
 
                 Array.ConstrainedCopy(entrada, 12, salida, 0, longent - 15);
 
@@ -101,7 +100,7 @@ namespace LibreriaMetodologia
             }
             else
             {                
-                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.EMPAQUETADO;
+                GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.EMPAQUETADO;
                 salida = null;
                 return new Error("Error de protocolo: tipo paquete incorrecto.", (int)ErrProtocolo.TIPO_PAQUETE, 0);
             }

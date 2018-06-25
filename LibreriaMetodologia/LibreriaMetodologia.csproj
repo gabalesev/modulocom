@@ -7,8 +7,8 @@
     <ProjectGuid>{B049192A-0AC8-4C35-9EBD-9609C16A61F0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ProtocoloLib</RootNamespace>
-    <AssemblyName>ProtocoloLib</AssemblyName>
+    <RootNamespace>LibreriaMetodologia</RootNamespace>
+    <AssemblyName>LibreriaMetodologia</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -41,8 +41,9 @@
     <Reference Include="LibreriaClases">
       <HintPath>C:\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
     </Reference>
-    <Reference Include="MonoLibrary">
-      <HintPath>C:\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
+    <Reference Include="MonoLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\SERVICIOS\dlls\MonoLibrary.dll</HintPath>
     </Reference>
     <Reference Include="NLog">
       <HintPath>C:\SERVICIOS\dlls\NLog.dll</HintPath>
@@ -62,21 +63,24 @@
     <Compile Include="GestorArchivoConfiguracionConexion.cs" />
     <Compile Include="ConstructorMenEnv.cs" />
     <Compile Include="ConstructorMenRec.cs" />
-    <Compile Include="Crc16Ccitt.cs" />
     <Compile Include="Empaquetador.cs" />
     <Compile Include="Enmascarador.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MetodologiaConfig.cs" />
+    <Compile Include="ConfiguracionComunicacion.cs" />
     <Compile Include="GestorTransacciones.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LoggerLib\LibreriaRegistro.csproj">
+    <None Include="LibreriaMetodologia.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LibreriaConversiones\LibreriaConversiones.csproj">
+      <Project>{b6cd8c5a-28a3-4445-8c63-9bb01afd9455}</Project>
+      <Name>LibreriaConversiones</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibreriaRegistro\LibreriaRegistro.csproj">
       <Project>{e98f4e55-2600-41ab-ae64-f6caaf3dd28b}</Project>
       <Name>LibreriaRegistro</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="LibreriaMetodologia.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

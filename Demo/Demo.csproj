@@ -65,14 +65,6 @@
       <Project>{fc6385a6-4581-4799-b862-0575d36a0e0b}</Project>
       <Name>LibreriaModuloTransaccional</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LoggerLib\LibreriaRegistro.csproj">
-      <Project>{e98f4e55-2600-41ab-ae64-f6caaf3dd28b}</Project>
-      <Name>LibreriaRegistro</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ProtocoloLib\LibreriaMetodologia.csproj">
-      <Project>{b049192a-0ac8-4c35-9ebd-9609c16a61f0}</Project>
-      <Name>LibreriaMetodologia</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

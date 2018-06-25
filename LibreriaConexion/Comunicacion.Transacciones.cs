@@ -17,28 +17,27 @@ namespace LibreriaModuloTransaccional
             IList objs = new List<object>();
             try
             {
-                TR.ordenAckE = 0;
-                TR.ordenMsgNackE = 0;
-                GestorTransacciones.ProtoConfig.NACK_ENV = NackEnv.SINERROR;
+                GestorTransacciones.ordenAckE = 0;
+                GestorTransacciones.ordenMsgNackE = 0;
+                GestorTransacciones.ConfiguracionComunicacion.NackEnvio = NackEnv.SINERROR;
 
-                datosA.Tipo = GestorTransacciones.ProtoConfig.BASE_CONFIG.TerminalModelo;
+                datosA.Tipo = GestorTransacciones.ConfiguracionComunicacion.BASE_CONFIG.TerminalModelo;
 
-                Enviar(ConstructorMenEnv.crearA_Logueo(datosA, UltimaConexionOptima, GestorTransacciones.ProtoConfig.LOCAL_IP), EnumPaquete.DATOS, TR.ordenMsgNackE);
+                Enviar(datosA, EnumPaquete.DATOS, GestorTransacciones.ordenMsgNackE);
 
-                TR.ordenMsgNackE++;
+                GestorTransacciones.ordenMsgNackE++;
                 Errorof errOf = new Errorof();
 
                 //Recibo Mensaje B y envío ACK o NACK
                 do
                 {
-                    bytes = new byte[MetodologiaConfig.TamBuffer];
+                    var bytes = new byte[GestorTransacciones.ConfiguracionComunicacion.LongitudBuffer];
                     objs = Recibir(bytes, 2, 0, "B");
 
                     //atrapa errores de recepción
                     if (objs.Count > 1 && !(objs[0] is string))
                     {
-                        byte[] ACK = { };
-                        Enviar(ACK, EnumPaquete.ACK, TR.ordenAckE);
+                        Enviar(null, EnumPaquete.ACK, GestorTransacciones.ordenAckE);
                     }
                     else
                     {
@@ -46,7 +45,7 @@ namespace LibreriaModuloTransaccional
                     }
 
                 }
-                while (GestorTransacciones.ProtoConfig.NACK_ENV != NackEnv.SINERROR);
+                while (GestorTransacciones.ConfiguracionComunicacion.NackEnvio != NackEnv.SINERROR);
 
                 if (objs == null || objs.Count == 0)
                 {
@@ -63,8 +62,8 @@ namespace LibreriaModuloTransaccional
                     {
                         if (obj is PRN)
                         {
-                            cxn.crear_XMLprn(((PRN)obj).Nombre1, ((PRN)obj).Nombre2, ((PRN)obj).Nombre3, ((PRN)obj).Port1, ((PRN)obj).Port2, ((PRN)obj).Port3,
-                                ((PRN)obj).Telefono1, ((PRN)obj).Telefono2, ((PRN)obj).Telefono3, GestorTransacciones.ProtoConfig.CONFIG);
+                            cxn.Crear_XMLprn(((PRN)obj).Nombre1, ((PRN)obj).Nombre2, ((PRN)obj).Nombre3, ((PRN)obj).Port1, ((PRN)obj).Port2, ((PRN)obj).Port3,
+                                ((PRN)obj).Telefono1, ((PRN)obj).Telefono2, ((PRN)obj).Telefono3, GestorTransacciones.ConfiguracionComunicacion.Configuracion);
                         }
                         else if (obj is Error)
                             ((Error)objs[0]).Estado = 0;
@@ -93,13 +92,13 @@ namespace LibreriaModuloTransaccional
 
                     if (interno)
                     {
-                        cxn.crear_XMLprn(prn.Nombre1, prn.Nombre2, prn.Nombre3, prn.Port1, prn.Port2, prn.Port3, prn.Telefono1, prn.Telefono2, prn.Telefono3, GestorTransacciones.ProtoConfig.CONFIG);
+                        cxn.Crear_XMLprn(prn.Nombre1, prn.Nombre2, prn.Nombre3, prn.Port1, prn.Port2, prn.Port3, prn.Telefono1, prn.Telefono2, prn.Telefono3, GestorTransacciones.ConfiguracionComunicacion.Configuracion);
                         Desconectar(interno);
                         return objs;
                     }
                     else
                     {
-                        cxn.crear_XMLprn(prn.Nombre1, prn.Nombre2, prn.Nombre3, prn.Port1, prn.Port2, prn.Port3, prn.Telefono1, prn.Telefono2, prn.Telefono3, GestorTransacciones.ProtoConfig.CONFIG);
+                        cxn.Crear_XMLprn(prn.Nombre1, prn.Nombre2, prn.Nombre3, prn.Port1, prn.Port2, prn.Port3, prn.Telefono1, prn.Telefono2, prn.Telefono3, GestorTransacciones.ConfiguracionComunicacion.Configuracion);
                     }
                 }
 
@@ -113,8 +112,8 @@ namespace LibreriaModuloTransaccional
                 err.Descripcion = "Ocurrió un error en la comunicación al intentar enviar credenciales."; //Definir que descripción pasar con Jorge
                 err.Estado = 0;
 
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + err.CodError + " " + err.Descripcion, lvlLogExcepciones, TimeStampLog);
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.Message, lvlLogDebug, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + err.CodError + " " + err.Descripcion, NivelRegistroExcepciones, REGISTRAR_HORA);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.Message, NivelRegistroDebug, REGISTRAR_HORA);
 
                 objs.Insert(0, err);
                 if (objs.Count > 1)
@@ -173,88 +172,6 @@ namespace LibreriaModuloTransaccional
                 return new List<object> { errEx };
             }
         }*/
-        /*public IList InteraccionPQ2(object cabecera, object juegos, PedidosSorteos queJuego)
-        {
-            try
-            {
-                Error err = new Error();
-                IList objs = new List<object>();
-                Errorof erNroOf = opOff.GetNro(DateTime.Now, ref TransacManager.ProtoConfig.nroOff);
-
-                if (erNroOf.Error != 0)
-                {
-                    err.CodError = (uint)erNroOf.Error;
-                    err.Descripcion = erNroOf.Mensaje;
-                    objs.Add(err);
-                    return objs;
-                }
-
-                ModuloDeRegistro.RegistrarMensaje("Transacción " + queJuego.ToString(), lvlLogTransaccion, TimeStampLog);
-
-                if (queJuego == PedidosSorteos.QUINIELA)
-                {
-                    if (cabecera != null)
-                    {
-                        TransacQuinielaH tqh = (TransacQuinielaH)cabecera;
-                        tqh.NroSecuencia = (uint)TransacManager.ProtoConfig.nroOff.numeroOff;
-                        Enviar(ConstructorMenEnv.crearP_QM(tqh, (TransacQuinielaB)juegos), EnumPaquete.DATOS, TR.ordenMsgNackE);
-                    }
-                    else
-                        throw new ArgumentException("El pedido de sorteo no es válido.", "Cabecera nula.");
-                }
-
-                TR.ordenMsgNackE++;
-
-                bytes = new byte[ProtocoloConfig.TamBuffer];
-                do
-                {
-                    objs = Recibir(bytes, 2, 0, "Q2");
-
-                    //atrapa errores de recepción
-                    if (objs.Count > 1 && !(objs[0] is string))
-                    {
-                        byte[] ACK = { };
-                        Enviar(ACK, EnumPaquete.ACK, TR.ordenAckE);
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                while (!TransacManager.ProtoConfig.NACK_ENV.Equals(NackEnv.SINERROR));
-
-                if (objs == null || objs.Count == 0)
-                {
-                    throw new Exception("Lista de objetos(objs) regreso vacía de Recibir()");
-                }
-                else if (objs[0] is string)
-                {
-                    opOff.BajaNro();
-                    objs[0] = MensajeNack(objs[0]);
-                }
-                else if (objs[0] is Error)
-                {
-                    Error er = (Error)objs[0];
-                    if (er.CodError != 0)
-                        opOff.BajaNro();
-                    else
-                    {
-                        if (objs[1] != null && objs[1] is TransacQuinielaH)
-                            ((TransacQuinielaH)objs[1]).NroSecuencia = (uint)TransacManager.ProtoConfig.nroOff.numeroOff;
-                        else if (objs[1] != null && objs[1] is TransacPoceado)
-                            ((TransacPoceado)objs[1]).NroSecuencia = (uint)TransacManager.ProtoConfig.nroOff.numeroOff;
-                    }
-
-                }
-
-                return objs;
-            }
-            catch (Exception ex)
-            {
-                opOff.BajaNro();
-                Error errEx = EmpalmeErrorExcepcion(ex, ErrComunicacion.APUESTAex, "Ha ocurrido un problema durante la descarga de apuestas.");
-                return new List<object> { errEx };
-            }
-        }*/
+        
     }
 }

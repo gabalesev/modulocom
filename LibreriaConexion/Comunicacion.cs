@@ -21,34 +21,28 @@ namespace LibreriaModuloTransaccional
     {
         public OperaOffLine opOff = new OperaOffLine();
 
-        public GestorTransacciones TR;
+        public GestorTransacciones GestorTransacciones;
 
         private IList<string> TIPOS_NACK = new List<string> { "B", "E", "T", "P" };
-
-        public int bytesCount { get; set; }
-        public byte[] bytes { get; set; }
-
-        //tipo de paquete esperado
-        public static EnumPaquete tipoPaq = EnumPaquete.DATOS;
-
+                
         #region Propiedades Logger        
-        public readonly NLog.LogLevel lvlLogTransaccion = NLog.LogLevel.Info;
-        public readonly NLog.LogLevel lvlLogCabeceraBuffer = NLog.LogLevel.Info;
-        public readonly NLog.LogLevel lvlLogCxn = NLog.LogLevel.Info;
-        public readonly NLog.LogLevel lvlLogError = NLog.LogLevel.Error;
-        public readonly NLog.LogLevel lvlLogExcepciones = NLog.LogLevel.Fatal;
-        public readonly NLog.LogLevel lvlLogDebug = NLog.LogLevel.Debug;
-        public const bool TimeStampLog = true;
+        private readonly NLog.LogLevel NivelRegistroTransaccion = NLog.LogLevel.Info;
+        private readonly NLog.LogLevel NivelRegistroCabeceraBuffer = NLog.LogLevel.Info;
+        private readonly NLog.LogLevel NivelRegistroCxn = NLog.LogLevel.Info;
+        private readonly NLog.LogLevel NivelRegistroError = NLog.LogLevel.Error;
+        private readonly NLog.LogLevel NivelRegistroExcepciones = NLog.LogLevel.Fatal;
+        private readonly NLog.LogLevel NivelRegistroDebug = NLog.LogLevel.Debug;
+        private const bool REGISTRAR_HORA = true;
         #endregion
 
         #region CONSTRUCTORES
         public Comunicacion(BaseConfig baseConf, ArchivoConfig conf)
         {
-            GestorTransacciones.ProtoConfig = new MetodologiaConfig(baseConf, conf);
+            GestorTransacciones.ConfiguracionComunicacion = new ConfiguracionComunicacion(baseConf, conf);
 
             var NivelLog = NLog.LogLevel.Off;
 
-            switch (GestorTransacciones.ProtoConfig.CONFIG.LevelLog)
+            switch (GestorTransacciones.ConfiguracionComunicacion.Configuracion.LevelLog)
             {
                 case EnumMessageType.DEBUG: NivelLog = NLog.LogLevel.Trace; break;
                 case EnumMessageType.NORMAL: NivelLog = NLog.LogLevel.Info; break;
@@ -72,13 +66,13 @@ namespace LibreriaModuloTransaccional
 
             ModuloDeRegistro.InicializaRegistrador(conf.LogPath, conf.LogMaxFileSize, NivelLog, fName);
 
-            TR = new GestorTransacciones();
+            GestorTransacciones = new GestorTransacciones();
         }
         public Comunicacion(BaseConfig baseConf, ArchivoConfig conf, bool interno)
         {
             var NivelLog = NLog.LogLevel.Off;
 
-            switch (GestorTransacciones.ProtoConfig.CONFIG.LevelLog)
+            switch (GestorTransacciones.ConfiguracionComunicacion.Configuracion.LevelLog)
             {
                 case EnumMessageType.DEBUG: NivelLog = NLog.LogLevel.Trace; break;
                 case EnumMessageType.NORMAL: NivelLog = NLog.LogLevel.Info; break;
@@ -100,43 +94,33 @@ namespace LibreriaModuloTransaccional
 
             ModuloDeRegistro.InicializaRegistrador(conf.LogPath, conf.LogMaxFileSize, NivelLog, fName);
 
-            TR = new GestorTransacciones();
+            GestorTransacciones = new GestorTransacciones();
         }
         #endregion        
 
         #region CONEXIÓN
-        public static IPEndPoint ipEndPoint;
-        public Socket sender;
-        public static string[] UltimaConexionOptima = new string[3];
-        public bool esPorPuertoSerie = false;
-        public static SerialPort port1;
-        public static string inputSerial;
-        private static byte bytePuertoSerie = 0;        
+        private static IPEndPoint ipEndPoint;
+        private Socket Socket;
+        private static string[] UltimaConexionOptima = new string[3];
 
         public Error Conectar(Terminal ter, EnumModoConexion modoConexion)
         {
             Error cxnErr = new Error();
 
-            ModuloDeRegistro.RegistrarMensaje("TERMINAL: " + ter.NumeroTerminal + " USUARIO: " + ter.Tarjeta, lvlLogCxn, TimeStampLog);
-            //LogBMTP.LogMessage("TARJETA: " + ter.Tarjeta, CONFIG.LevelLog);
-            //LogBMTP.LogMessage("(Level log: " + lvlLogCabeceraTransaccion, TimeStampLog.ToString() + ")", lvlLogCxn, TimeStampLog);          
-
+            ModuloDeRegistro.RegistrarMensaje("TERMINAL: " + ter.NumeroTerminal + " USUARIO: " + ter.Tarjeta, NivelRegistroCxn, REGISTRAR_HORA);
+            
             #region // DIAL UP
             if (modoConexion == EnumModoConexion.DIALUP)
             {
-                GestorTransacciones.ProtoConfig.TIPO_CXN = EnumModoConexion.DIALUP;
-                if (GestorTransacciones.ProtoConfig.CONFIG.CxnOnlineHabilitado)
+                GestorTransacciones.ConfiguracionComunicacion.TipoConexion = EnumModoConexion.DIALUP;
+                if (GestorTransacciones.ConfiguracionComunicacion.Configuracion.CxnOnlineHabilitado)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: TELEFONO", lvlLogCxn, TimeStampLog);
-                    ModuloDeRegistro.RegistrarMensaje("(Timeout DialUp: " + GestorTransacciones.ProtoConfig.CONFIG.CxnTelTimeout + ")", lvlLogCxn, TimeStampLog);                    
+                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: TELEFONO", NivelRegistroCxn, REGISTRAR_HORA);
+                    ModuloDeRegistro.RegistrarMensaje("(Timeout DialUp: " + GestorTransacciones.ConfiguracionComunicacion.Configuracion.CxnTelTimeout + ")", NivelRegistroCxn, REGISTRAR_HORA);                    
                     
-                    cxnErr = AbrePuertoTelefono();
+                    cxnErr = ConectarDialUp(ter);
                     if (cxnErr.CodError != 0)
-                        return cxnErr;
-
-                    cxnErr = Crea_PRN_TelefonoSerie(ter);
-                    if (cxnErr.CodError != 0)
-                        return cxnErr;                    
+                        return cxnErr;                
                 }
                 else
                 {
@@ -150,43 +134,11 @@ namespace LibreriaModuloTransaccional
             #region // ETHERNET
             else if (modoConexion == EnumModoConexion.ETHERNET)
             {
-                GestorTransacciones.ProtoConfig.TIPO_CXN = EnumModoConexion.ETHERNET;
-                if (GestorTransacciones.ProtoConfig.CON_CICLO_PRN)
+                GestorTransacciones.ConfiguracionComunicacion.TipoConexion = EnumModoConexion.ETHERNET;
+                if (GestorTransacciones.ConfiguracionComunicacion.Configuracion.CxnOnlineHabilitado)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: ETHERNET \n", lvlLogCxn, TimeStampLog);
-                    cxnErr = Crea_PRN_Socket(ter);
-                    if (cxnErr.CodError != 0)
-                        return cxnErr;
-                }
-                else if (!GestorTransacciones.ProtoConfig.CON_CICLO_PRN)
-                {
-                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: ETHERNET y TESTING", lvlLogCxn, TimeStampLog);
-                    cxnErr = Crea_PRN_Socket_TEST(ter);
-                    if (cxnErr.CodError != 0)
-                        return cxnErr;
-                }
-                else
-                {
-                    cxnErr.CodError = (uint)ErrComunicacion.CONEXION;
-                    cxnErr.Descripcion = "Modo de conexión Online no habilitado.";
-                    cxnErr.Estado = 0;
-                    return cxnErr;
-                }
-            }
-            #endregion
-            #region // RADIO
-            else if (modoConexion == EnumModoConexion.RADIO)
-            {
-                GestorTransacciones.ProtoConfig.TIPO_CXN = EnumModoConexion.RADIO;
-                if (GestorTransacciones.ProtoConfig.CONFIG.CxnOnlineHabilitado)
-                {
-                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: RADIO", lvlLogCxn, TimeStampLog);
-
-                    cxnErr = AbrePuertoRadio();
-                    if (cxnErr.CodError != 0)
-                        return cxnErr;
-
-                    cxnErr = Crea_PRN_Radio(ter);
+                    ModuloDeRegistro.RegistrarMensaje("Modo de conexión: ETHERNET \n", NivelRegistroCxn, REGISTRAR_HORA);
+                    cxnErr = ConectarAServidor(ter);
                     if (cxnErr.CodError != 0)
                         return cxnErr;
                 }
@@ -208,28 +160,27 @@ namespace LibreriaModuloTransaccional
             {
                 Error err = new Error();
 
-                if (GestorTransacciones.ProtoConfig.TIPO_CXN == EnumModoConexion.DIALUP)
+                if (GestorTransacciones.ConfiguracionComunicacion.TipoConexion == EnumModoConexion.DIALUP)
                 {
                     #region // Secuencia de desconexión DIAL UP
-                    if (sender != null)
+                    if (Socket != null)
                     {
-                        if (sender.Connected)
+                        if (Socket.Connected)
                         {
-                            byte[] EOT = { };
-                            Enviar(EOT, EnumPaquete.EOT, 0);
+                            Enviar(null, EnumPaquete.EOT, 0);
 
                             // Disables sends and receives on a Socket.
                             System.Threading.Thread.Sleep(700);
 
-                            sender.Shutdown(SocketShutdown.Both);
-                            sender.Close();// (SocketShutdown.Both);
-                            if (!sender.Connected)
-                                ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR TERMINAL", lvlLogCxn, TimeStampLog);
+                            Socket.Shutdown(SocketShutdown.Both);
+                            Socket.Close();// (SocketShutdown.Both);
+                            if (!Socket.Connected)
+                                ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR TERMINAL", NivelRegistroCxn, REGISTRAR_HORA);
                             else
-                                ModuloDeRegistro.RegistrarMensaje("ATENCIÓN: COMUNICACIÓN NO HA SIDO FINALIZADA", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("ATENCIÓN: COMUNICACIÓN NO HA SIDO FINALIZADA", NivelRegistroCxn, REGISTRAR_HORA);
                         }
                         else
-                            ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR SERVICIO", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR SERVICIO", NivelRegistroCxn, REGISTRAR_HORA);
                     }
                     ICollection<RasConnection> conecciones = RasConnection.GetActiveConnections();
 
@@ -241,50 +192,34 @@ namespace LibreriaModuloTransaccional
                     }
                     #endregion
                 }
-                else if (GestorTransacciones.ProtoConfig.TIPO_CXN == EnumModoConexion.ETHERNET)
+                else if (GestorTransacciones.ConfiguracionComunicacion.TipoConexion == EnumModoConexion.ETHERNET)
                 {
                     #region // Secuencia de desconexión ETHERNET
-                    if (sender != null)
+                    if (Socket != null)
                     {
-                        if (sender.Connected)
+                        if (Socket.Connected)
                         {
-                            byte[] EOT = { };
-                            Enviar(EOT, EnumPaquete.EOT, 0);
+                            Enviar(null, EnumPaquete.EOT, 0);
 
                             // Disables sends and receives on a Socket.
                             System.Threading.Thread.Sleep(700);
 
-                            sender.Shutdown(SocketShutdown.Both);
-                            sender.Close();// (SocketShutdown.Both);
-                            if (!sender.Connected)
-                                ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR TERMINAL", lvlLogCxn, TimeStampLog);
+                            Socket.Shutdown(SocketShutdown.Both);
+                            Socket.Close();// (SocketShutdown.Both);
+                            if (!Socket.Connected)
+                                ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR TERMINAL", NivelRegistroCxn, REGISTRAR_HORA);
                             else
-                                ModuloDeRegistro.RegistrarMensaje("ATENCIÓN: COMUNICACIÓN NO HA SIDO FINALIZADA", lvlLogCxn, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje("ATENCIÓN: COMUNICACIÓN NO HA SIDO FINALIZADA", NivelRegistroCxn, REGISTRAR_HORA);
                         }
                         else
                         {
-                            sender.Close();// (SocketShutdown.Both);
+                            Socket.Close();// (SocketShutdown.Both);
 
-                            ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR SERVICIO", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("COMUNICACIÓN FINALIZADA POR SERVICIO", NivelRegistroCxn, REGISTRAR_HORA);
                         }
                     }
                     #endregion
                 }
-                else if (GestorTransacciones.ProtoConfig.TIPO_CXN == EnumModoConexion.RADIO)
-                {
-                    #region // Secuencia de desconexión RADIO
-                    if (port1 != null && port1.IsOpen)
-                    {
-                        byte[] EOT = { };
-                        System.Threading.Thread.Sleep(100);
-                        Enviar(EOT, EnumPaquete.EOT, 0);
-                        System.Threading.Thread.Sleep(100);
-
-                        CierraPuertoSerie();
-                    }
-                    #endregion
-                }
-
 
                 err.CodError = 0;
                 err.Descripcion = "";
@@ -300,7 +235,7 @@ namespace LibreriaModuloTransaccional
         }       
 
         //Ethernet
-        private Error Crea_PRN_Socket(Terminal ter)
+        private Error ConectarAServidor(Terminal ter)
         {
             string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
 
@@ -317,11 +252,11 @@ namespace LibreriaModuloTransaccional
 
                 for (int i = 0; i < ipHostInfo.AddressList.Length; i++)
                 {
-                    GestorTransacciones.ProtoConfig.LOCAL_IP = ipHostInfo.AddressList[i]; //----------- Cambia de 1 elemento a 2.
-                    if (GestorTransacciones.ProtoConfig.LOCAL_IP.AddressFamily == AddressFamily.InterNetwork) break;
+                    GestorTransacciones.ConfiguracionComunicacion.LocalIP = ipHostInfo.AddressList[i]; //----------- Cambia de 1 elemento a 2.
+                    if (GestorTransacciones.ConfiguracionComunicacion.LocalIP.AddressFamily == AddressFamily.InterNetwork) break;
                 }
 
-                IPEndPoint localEndPoint = new IPEndPoint(GestorTransacciones.ProtoConfig.LOCAL_IP, GestorTransacciones.ProtoConfig.LOCAL_PORT);
+                IPEndPoint localEndPoint = new IPEndPoint(GestorTransacciones.ConfiguracionComunicacion.LocalIP, GestorTransacciones.ConfiguracionComunicacion.LocalPort);
 
                 bool sale = false;
                 int fusible = 0;
@@ -330,9 +265,9 @@ namespace LibreriaModuloTransaccional
                     SocketPermission permission = new SocketPermission(PermissionState.Unrestricted);
                     permission.Demand();
 
-                    string res = cxn.Leer_XMLprn(out nombre1, out nombre2, out nombre3, out port1, out  port2, out port3, out tel1, out tel2, out tel3, GestorTransacciones.ProtoConfig.CONFIG);
+                    string res = cxn.Leer_XMLprn(out nombre1, out nombre2, out nombre3, out port1, out  port2, out port3, out tel1, out tel2, out tel3, GestorTransacciones.ConfiguracionComunicacion.Configuracion);
 
-                    if (res == null && GestorTransacciones.ProtoConfig.CON_CICLO_PRN) // EXISTE PRN
+                    if (res == null && GestorTransacciones.ConfiguracionComunicacion.UsaCicloPRN) // EXISTE PRN
                     {
                         #region // INTENTA CONECTAR CON PRN
                         string[] nom = { nombre1, nombre2, nombre3 };
@@ -353,34 +288,34 @@ namespace LibreriaModuloTransaccional
                                         if (ipAddr.AddressFamily == AddressFamily.InterNetwork) break;
                                     }
 
-                                    ModuloDeRegistro.RegistrarMensaje("Resulve DNS: " + nom[j] + " - " + ipAddr, lvlLogCxn, TimeStampLog);
+                                    ModuloDeRegistro.RegistrarMensaje("Resulve DNS: " + nom[j] + " - " + ipAddr, NivelRegistroCxn, REGISTRAR_HORA);
 
                                     ipEndPoint = new IPEndPoint(ipAddr, Convert.ToInt32(por[j]));
 
-                                    sender = new Socket(
+                                    Socket = new Socket(
                                     ipAddr.AddressFamily,// Specifies the addressing scheme
                                     SocketType.Stream,   // The type of socket 
                                     ProtocolType.Tcp     // Specifies the protocols 
                                     );
 
-                                    sender.NoDelay = false;   // Using the Nagle algorithm
+                                    Socket.NoDelay = false;   // Using the Nagle algorithm
 
-                                    sender.ReceiveTimeout = MetodologiaConfig.TimeoutSocket;
-                                    sender.SendTimeout = MetodologiaConfig.TimeoutSocket;
+                                    Socket.ReceiveTimeout = GestorTransacciones.ConfiguracionComunicacion.TimeoutSocket;
+                                    Socket.SendTimeout = GestorTransacciones.ConfiguracionComunicacion.TimeoutSocket;
 
-                                    sender.Bind(localEndPoint);
+                                    Socket.Bind(localEndPoint);
 
-                                    sender.Connect(ipEndPoint);
+                                    Socket.Connect(ipEndPoint);
                                 }
                             }
                             catch (Exception e)
                             {
                                 ipHost = null;
-                                ModuloDeRegistro.RegistrarMensaje(" Intento con " + nom[j] + "(" + j + ") falló. \n" + e.Message + " " + e.InnerException, lvlLogDebug, TimeStampLog);
-                                if (sender != null)
-                                    sender.Close();
+                                ModuloDeRegistro.RegistrarMensaje(" Intento con " + nom[j] + "(" + j + ") falló. \n" + e.Message + " " + e.InnerException, NivelRegistroDebug, REGISTRAR_HORA);
+                                if (Socket != null)
+                                    Socket.Close();
                             }
-                            if (sender != null && sender.Connected == true)
+                            if (Socket != null && Socket.Connected == true)
                             {
                                 UltimaConexionOptima[0] = nom[j];
                                 UltimaConexionOptima[1] = por[j];
@@ -400,10 +335,10 @@ namespace LibreriaModuloTransaccional
                             break;
                         }
 
-                        if (sender == null || sender.Connected != true)
+                        if (Socket == null || Socket.Connected != true)
                         {
                             #region // FALLÓ PRN, INTENTA CON VALORES DEFAULT
-                            cxn.Borrar_XMLprn(GestorTransacciones.ProtoConfig.CONFIG);
+                            cxn.Borrar_XMLprn(GestorTransacciones.ConfiguracionComunicacion.Configuracion);
 
                             try
                             {
@@ -412,32 +347,32 @@ namespace LibreriaModuloTransaccional
                                     localEndPoint.Port++;
                                 }
 
-                                ipAddr = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer;
+                                ipAddr = GestorTransacciones.ConfiguracionComunicacion.Configuracion.DefaultServer;
 
-                                ipEndPoint = new IPEndPoint(ipAddr, GestorTransacciones.ProtoConfig.CONFIG.Port);
+                                ipEndPoint = new IPEndPoint(ipAddr, GestorTransacciones.ConfiguracionComunicacion.Configuracion.Port);
 
-                                sender = new Socket(
+                                Socket = new Socket(
                                 ipAddr.AddressFamily,// Asigno tipo de address 
                                 SocketType.Stream,   // Tipo de socket
                                 ProtocolType.Tcp     // Tipo de protocolo
                                 );
 
-                                sender.NoDelay = false;   // Using the Nagle algorithm                                                               
+                                Socket.NoDelay = false;   // Using the Nagle algorithm                                                               
 
-                                sender.ReceiveTimeout = MetodologiaConfig.TimeoutSocket;
-                                sender.SendTimeout = MetodologiaConfig.TimeoutSocket;
+                                Socket.ReceiveTimeout = GestorTransacciones.ConfiguracionComunicacion.TimeoutSocket;
+                                Socket.SendTimeout = GestorTransacciones.ConfiguracionComunicacion.TimeoutSocket;
 
-                                sender.Bind(localEndPoint);
+                                Socket.Bind(localEndPoint);
 
-                                sender.Connect(ipEndPoint);
+                                Socket.Connect(ipEndPoint);
                             }
                             catch (Exception e)
                             {
                                 ipHost = null;
-                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, NivelRegistroDebug, REGISTRAR_HORA);
                             }
 
-                            if (sender.Connected != true)
+                            if (Socket.Connected != true)
                             {
                                 cxnErr.CodError = (int)ErrComunicacion.CXN_SOCKET;
                                 cxnErr.Descripcion = "Error de conexión. No pudo establecerse una comunicación con los valores del PRN, ni los por defecto.";
@@ -446,22 +381,22 @@ namespace LibreriaModuloTransaccional
                             }
                             else
                             {
-                                UltimaConexionOptima[0] = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer.ToString();
-                                UltimaConexionOptima[1] = GestorTransacciones.ProtoConfig.CONFIG.Port.ToString();
-                                UltimaConexionOptima[2] = GestorTransacciones.ProtoConfig.CONFIG.Telefono;
+                                UltimaConexionOptima[0] = GestorTransacciones.ConfiguracionComunicacion.Configuracion.DefaultServer.ToString();
+                                UltimaConexionOptima[1] = GestorTransacciones.ConfiguracionComunicacion.Configuracion.Port.ToString();
+                                UltimaConexionOptima[2] = GestorTransacciones.ConfiguracionComunicacion.Configuracion.Telefono;
 
                                 ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n\nHOST: IP "
                                 + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n"
-                                + "BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, false);
+                                + "BMTP: IP " + ((IPEndPoint)Socket.LocalEndPoint).Address + " Port " + ((IPEndPoint)Socket.LocalEndPoint).Port + "\n", NivelRegistroCxn, false);
 
-                                Comunicacion cm = new Comunicacion(GestorTransacciones.ProtoConfig.BASE_CONFIG, GestorTransacciones.ProtoConfig.CONFIG, true);
-                                cm.sender = sender;
+                                Comunicacion cm = new Comunicacion(GestorTransacciones.ConfiguracionComunicacion.BASE_CONFIG, GestorTransacciones.ConfiguracionComunicacion.Configuracion, true);
+                                cm.Socket = Socket;
                                 IList rdo = cm.InteraccionAB(ref ter, true);
                                 if (rdo[0] is Error)
                                 {
                                     if (((Error)rdo[0]).CodError != 0)
                                     {
-                                        ModuloDeRegistro.RegistrarMensaje(((Error)rdo[0]).Descripcion, lvlLogError, TimeStampLog);
+                                        ModuloDeRegistro.RegistrarMensaje(((Error)rdo[0]).Descripcion, NivelRegistroError, REGISTRAR_HORA);
                                         cxnErr = (Error)rdo[0];
                                         sale = true;
                                     }
@@ -479,10 +414,10 @@ namespace LibreriaModuloTransaccional
                     }
                     else // NO EXISTE PRN
                     {
-                        #region // INTENTA CONECTAR CON CONFIG.BIN
+                        #region // INTENTA CONECTAR CON CONFIG
                         try
                         {
-                            if (!PuertoDisponible(GestorTransacciones.ProtoConfig.CONFIG.Port) || !PuertoDisponible(localEndPoint.Port))
+                            if (!PuertoDisponible(GestorTransacciones.ConfiguracionComunicacion.Configuracion.Port) || !PuertoDisponible(localEndPoint.Port))
                             {
                                 cxnErr.CodError = (int)ErrComunicacion.CXN_SOCKET;
                                 cxnErr.Descripcion = "Error de conexión. Puerto default ocupado.";
@@ -490,31 +425,31 @@ namespace LibreriaModuloTransaccional
                                 return cxnErr;
                             }
 
-                            ipAddr = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer;
+                            ipAddr = GestorTransacciones.ConfiguracionComunicacion.Configuracion.DefaultServer;
 
-                            ipEndPoint = new IPEndPoint(ipAddr, GestorTransacciones.ProtoConfig.CONFIG.Port);
+                            ipEndPoint = new IPEndPoint(ipAddr, GestorTransacciones.ConfiguracionComunicacion.Configuracion.Port);
 
-                            sender = new Socket(
+                            Socket = new Socket(
                             ipAddr.AddressFamily,// Asigno tipo de address de
                             SocketType.Stream,   // The type of socket 
                             ProtocolType.Tcp     // Specifies the protocols 
                             );
 
-                            sender.NoDelay = false;   // Using the Nagle algorithm
+                            Socket.NoDelay = false;   // Using the Nagle algorithm
 
-                            sender.ReceiveTimeout = MetodologiaConfig.TimeoutSocket;
-                            sender.SendTimeout = MetodologiaConfig.TimeoutSocket;
+                            Socket.ReceiveTimeout = GestorTransacciones.ConfiguracionComunicacion.TimeoutSocket;
+                            Socket.SendTimeout = GestorTransacciones.ConfiguracionComunicacion.TimeoutSocket;
 
-                            sender.Bind(localEndPoint);
+                            Socket.Bind(localEndPoint);
 
-                            sender.Connect(ipEndPoint);                            
+                            Socket.Connect(ipEndPoint);                            
                         }
                         catch (Exception e)
                         {
                             ipHost = null;
-                            ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, NivelRegistroDebug, REGISTRAR_HORA);
                         }
-                        if (sender.Connected != true)
+                        if (Socket.Connected != true)
                         {
                             cxnErr.CodError = (int)ErrComunicacion.CXN_SOCKET;
                             cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación con los valores por defecto.";
@@ -523,18 +458,18 @@ namespace LibreriaModuloTransaccional
                         }
                         else
                         {
-                            UltimaConexionOptima[0] = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer.ToString();
-                            UltimaConexionOptima[1] = GestorTransacciones.ProtoConfig.CONFIG.Port.ToString();
-                            UltimaConexionOptima[2] = GestorTransacciones.ProtoConfig.CONFIG.Telefono;
+                            UltimaConexionOptima[0] = GestorTransacciones.ConfiguracionComunicacion.Configuracion.DefaultServer.ToString();
+                            UltimaConexionOptima[1] = GestorTransacciones.ConfiguracionComunicacion.Configuracion.Port.ToString();
+                            UltimaConexionOptima[2] = GestorTransacciones.ConfiguracionComunicacion.Configuracion.Telefono;
 
                             ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n\nHOST: IP "
                                 + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n"
-                                + "BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, false);
+                                + "BMTP: IP " + ((IPEndPoint)Socket.LocalEndPoint).Address + " Port " + ((IPEndPoint)Socket.LocalEndPoint).Port + "\n", NivelRegistroCxn, false);
 
-                            if (GestorTransacciones.ProtoConfig.CON_CICLO_PRN)
+                            if (GestorTransacciones.ConfiguracionComunicacion.UsaCicloPRN)
                             {
-                                Comunicacion cm = new Comunicacion(GestorTransacciones.ProtoConfig.BASE_CONFIG, GestorTransacciones.ProtoConfig.CONFIG, true);
-                                cm.sender = sender;
+                                Comunicacion cm = new Comunicacion(GestorTransacciones.ConfiguracionComunicacion.BASE_CONFIG, GestorTransacciones.ConfiguracionComunicacion.Configuracion, true);
+                                cm.Socket = Socket;
 
                                 IList rdo = cm.InteraccionAB(ref ter, true);
                                 if (rdo[0] is Error)
@@ -569,12 +504,12 @@ namespace LibreriaModuloTransaccional
                 #endregion
 
                 if (cxnErr.CodError != 0)
-                    ModuloDeRegistro.RegistrarMensaje("Error: " + cxnErr.CodError + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Error: " + cxnErr.CodError + " Descripción: " + cxnErr.Descripcion + "\n", NivelRegistroError, REGISTRAR_HORA);
                 else
                 {
-                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA:\n ", lvlLogCxn, TimeStampLog);
-                    ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                    ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA:\n ", NivelRegistroCxn, REGISTRAR_HORA);
+                    ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", NivelRegistroCxn, REGISTRAR_HORA);
+                    ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)Socket.LocalEndPoint).Address + " Port " + ((IPEndPoint)Socket.LocalEndPoint).Port + "\n", NivelRegistroCxn, REGISTRAR_HORA);
                 }
 
                 return cxnErr;
@@ -585,138 +520,37 @@ namespace LibreriaModuloTransaccional
                 cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación.";
                 cxnErr.Estado = 0;
 
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, NivelRegistroExcepciones, REGISTRAR_HORA);
+                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), NivelRegistroExcepciones, REGISTRAR_HORA);
 
                 return cxnErr;
             }
 
         }
-        private Error Crea_PRN_Socket_TEST(Terminal ter)
-        {
-            //string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
-
-            GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
-            Error cxnErr = new Error();
-            // IPHostEntry ipHost;
-            IPAddress ipAddr;
-            IPAddress ipAddrLocal;
-
-            try
-            {
-
-                IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-                ipAddrLocal = null;
-
-                for (int i = 0; i < ipHostInfo.AddressList.Length; i++)
-                {
-                    ipAddrLocal = ipHostInfo.AddressList[i]; //----------- Cambia de 1 elemento a 2.
-                    if (ipAddrLocal.AddressFamily == AddressFamily.InterNetwork) break;
-                }
-
-                IPEndPoint localEndPoint = new IPEndPoint(ipAddrLocal, GestorTransacciones.ProtoConfig.LOCAL_PORT);
-
-                SocketPermission permission = new SocketPermission(PermissionState.Unrestricted
-                    //NetworkAccess.Connect,    // Connection permission
-                    //TransportType.Tcp,        // Defines transport types
-                    //"",                       // Gets the IP addresses
-                    //SocketPermission.AllPorts // All ports
-                    );
-                //SocketPermissionAttribute per = new SocketPermissionAttribute(SecurityAction.
-                permission.Demand();
-
-                #region // INTENTA CONECTAR CON CONFIG.BIN
-                try
-                {
-                    ipAddr = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer;
-
-                    ipEndPoint = new IPEndPoint(ipAddr, GestorTransacciones.ProtoConfig.CONFIG.Port);
-
-                    sender = new Socket(
-                    ipAddr.AddressFamily,// Specifies the addressing scheme
-                    SocketType.Stream,   // The type of socket 
-                    ProtocolType.Tcp     // Specifies the protocols 
-                    );
-
-                    sender.NoDelay = false;   // Using the Nagle algorithm
-
-                    sender.Bind(localEndPoint);
-
-                    sender.Connect(ipEndPoint);
-
-                    //sender.Send(DataConverter.Pack("^$8", "Holaaaaaaaaa <EOF>"));
-                }
-                catch (Exception e)
-                {
-                    //   ipHost = null;
-                    ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
-                }
-                if (sender.Connected != true)
-                {
-                    cxnErr.CodError = (int)ErrComunicacion.CXN_SOCKET;
-                    cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación con los valores por defecto.";
-                    cxnErr.Estado = 0;
-                }
-                else
-                {
-                    UltimaConexionOptima[0] = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer.ToString();
-                    UltimaConexionOptima[1] = GestorTransacciones.ProtoConfig.CONFIG.Port.ToString();
-                    UltimaConexionOptima[2] = GestorTransacciones.ProtoConfig.CONFIG.Telefono;
-
-                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA CON VALORES DEFAULT:\n ", lvlLogCxn, TimeStampLog);
-                    ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                    ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
-                }
-                #endregion
-
-                if (cxnErr.CodError != 0)
-                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
-                else
-                {
-                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA:\n ", lvlLogCxn, TimeStampLog);
-                    ModuloDeRegistro.RegistrarMensaje("HOST: IP " + ipEndPoint.Address + " Port " + ipEndPoint.Port + "\n", lvlLogCxn, TimeStampLog);
-                    ModuloDeRegistro.RegistrarMensaje("BMTP: IP " + ((IPEndPoint)sender.LocalEndPoint).Address + " Port " + ((IPEndPoint)sender.LocalEndPoint).Port + "\n", lvlLogCxn, TimeStampLog);
-                }
-
-                return cxnErr;
-            }
-            catch (Exception ex)
-            {
-                cxnErr.CodError = (int)ErrComunicacion.CONEXIONex;
-                cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación.";
-                cxnErr.Estado = 0;
-
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
-
-                return cxnErr;
-            }
-
-        }       
        
         //Dialup
-        private Error CreaVPNxTel()
+        private Error CreaVinculoTelefonico()
         {
             Error cxnErr = new Error();
 
-            string telDefault = GestorTransacciones.ProtoConfig.CONFIG.Telefono;// "08006665807";
-            string prefijo = GestorTransacciones.ProtoConfig.CONFIG.CxnTelPrefijo;// "11000";
+            string telDefault = GestorTransacciones.ConfiguracionComunicacion.Configuracion.Telefono;// "08006665807";
+            string prefijo = GestorTransacciones.ConfiguracionComunicacion.Configuracion.CxnTelPrefijo;// "11000";
             string separador = "w";
             if (String.IsNullOrEmpty(prefijo))
             {
                 prefijo = "";
                 separador = "";
             }
-            string modemDefault = GestorTransacciones.ProtoConfig.CONFIG.CxnTelNombreModem;// "Conexant USB CX93010 ACF Modem";
-            string user = GestorTransacciones.ProtoConfig.CONFIG.CxnTelUser;// "bmtp";
-            string pass = GestorTransacciones.ProtoConfig.CONFIG.CxnTelPass;// "bmtp";
-            uint timeout = GestorTransacciones.ProtoConfig.CONFIG.CxnTelTimeout;
+            string modemDefault = GestorTransacciones.ConfiguracionComunicacion.Configuracion.CxnTelNombreModem;// "Conexant USB CX93010 ACF Modem";
+            string user = GestorTransacciones.ConfiguracionComunicacion.Configuracion.CxnTelUser;// "bmtp";
+            string pass = GestorTransacciones.ConfiguracionComunicacion.Configuracion.CxnTelPass;// "bmtp";
+            uint timeout = GestorTransacciones.ConfiguracionComunicacion.Configuracion.CxnTelTimeout;
 
             string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
 
             GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
             
-                string rdo = cxn.Leer_XMLprn(out nombre1, out nombre2, out nombre3, out port1, out  port2, out port3, out tel1, out tel2, out tel3, GestorTransacciones.ProtoConfig.CONFIG);
+                string rdo = cxn.Leer_XMLprn(out nombre1, out nombre2, out nombre3, out port1, out  port2, out port3, out tel1, out tel2, out tel3, GestorTransacciones.ConfiguracionComunicacion.Configuracion);
                 string[] tel = new string[4];
 
                 if (rdo == null)
@@ -761,11 +595,11 @@ namespace LibreriaModuloTransaccional
                             entry.AlternatePhoneNumbers.Add(prefijo + separador + tel[1]);
                             entry.AlternatePhoneNumbers.Add(prefijo + separador + tel[2]);
                             entry.AlternatePhoneNumbers.Add(prefijo + separador + telDefault);
-                            ModuloDeRegistro.RegistrarMensaje("Se leyó PRN. Telefonos alternativos cargados.", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("Se leyó PRN. Telefonos alternativos cargados.", NivelRegistroCxn, REGISTRAR_HORA);
                         }
                         else
                         {
-                            ModuloDeRegistro.RegistrarMensaje("No hay PRN. Intentará conectar con número telefónico por defecto.", lvlLogCxn, TimeStampLog);
+                            ModuloDeRegistro.RegistrarMensaje("No hay PRN. Intentará conectar con número telefónico por defecto.", NivelRegistroCxn, REGISTRAR_HORA);
                         }
 
                         //entry.Options.ModemLights = true;
@@ -792,13 +626,13 @@ namespace LibreriaModuloTransaccional
                     catch (Exception e)
                     {
                         pbk.Entries.Clear();
-                        ModuloDeRegistro.RegistrarMensaje(e.ToString(), lvlLogExcepciones, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje(e.ToString(), NivelRegistroExcepciones, REGISTRAR_HORA);
                         
                         cxnErr.CodError = (int)ErrComunicacion.CXN_TELEFONOex;
                         cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación por telefono.";
                         cxnErr.Estado = 0;
-                        ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                        ModuloDeRegistro.RegistrarMensaje("Excepción: " + e.ToString(), lvlLogExcepciones, TimeStampLog);
+                        ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, NivelRegistroExcepciones, REGISTRAR_HORA);
+                        ModuloDeRegistro.RegistrarMensaje("Excepción: " + e.ToString(), NivelRegistroExcepciones, REGISTRAR_HORA);
                     }                    
                 }
 
@@ -806,24 +640,22 @@ namespace LibreriaModuloTransaccional
             
 
         }
-        public Error ConectarDialUp(Terminal ter)
+        private Error ConectarDialUp(Terminal ter)
         {
             Error cxnErr = new Error();
 
-            //pe = new Logger(TransacManager.ProtoConfig.CONFIG);
-            ModuloDeRegistro.RegistrarMensaje("${level} TERMINAL: " + ter.NumeroTerminal + " TARJETA: " + ter.Tarjeta, lvlLogCxn, TimeStampLog);
-            //LogBMTP.LogMessage("(Level log: " + lvlLogCabeceraTransaccion, TimeStampLog.ToString() + ")", lvlLogCxn, TimeStampLog);
-
+            ModuloDeRegistro.RegistrarMensaje("${level} TERMINAL: " + ter.NumeroTerminal + " TARJETA: " + ter.Tarjeta, NivelRegistroCxn, REGISTRAR_HORA);
+            
             #region // Dial Up vía linea telefónica
-            if (GestorTransacciones.ProtoConfig.CONFIG.CxnDialUpHabilitado)
+            if (GestorTransacciones.ConfiguracionComunicacion.Configuracion.CxnDialUpHabilitado)
             {
-                GestorTransacciones.ProtoConfig.TIPO_CXN = EnumModoConexion.DIALUP_TEL;
-                cxnErr = CreaVPNxTel();
+                GestorTransacciones.ConfiguracionComunicacion.TipoConexion = EnumModoConexion.DIALUP_TEL;
+                cxnErr = CreaVinculoTelefonico();
                 if (cxnErr.CodError != 0)
                     return cxnErr;
                 else
                 {
-                    cxnErr = Crea_PRN_Socket(ter);
+                    cxnErr = ConectarAServidor(ter);
                     if (cxnErr.CodError != 0)
                         return cxnErr;
                 }
@@ -832,1029 +664,82 @@ namespace LibreriaModuloTransaccional
 
             return cxnErr;
         }
-
-        //Dialup Serie
-        private Error AbrePuertoTelefono()
-        {
-            Error portErr = new Error();
-            esPorPuertoSerie = true;
-            try
-            {
-                string[] portsCom = SerialPort.GetPortNames();
-                string portComDisponibles = "Puertos disponibles: ";
-                foreach (string st in portsCom)
-                {
-                    portComDisponibles = portComDisponibles + st + " ";
-                }
-
-                ModuloDeRegistro.RegistrarMensaje(portComDisponibles, lvlLogDebug, TimeStampLog);
-                ModuloDeRegistro.RegistrarMensaje("Puerto para TELEFONO: " + "COM11", lvlLogDebug, TimeStampLog); //TODO puerto telefono
-
-                port1 = new SerialPort("COM11", 115200, (Parity)GestorTransacciones.ProtoConfig.CONFIG.ParityRadio, GestorTransacciones.ProtoConfig.CONFIG.DataBitsRadio, (StopBits)GestorTransacciones.ProtoConfig.CONFIG.StopBitsRadio);
-                port1.ReadTimeout = GestorTransacciones.ProtoConfig.CONFIG.ReadTimeOutRadio;
-                port1.WriteTimeout = GestorTransacciones.ProtoConfig.CONFIG.WriteTimeOutRadio;
-                port1.ReadBufferSize = GestorTransacciones.ProtoConfig.CONFIG.ReadBufferSizeRadio;
-                port1.WriteBufferSize = GestorTransacciones.ProtoConfig.CONFIG.WriteBufferSizeRadio;
-                port1.ErrorReceived += port1_ErrorReceived;
-                port1.NewLine = "\r";
-                //port1.Handshake = Handshake.XOnXOff;//(Handshake)CONFIG.HandshakeRadio; //Handshake.RequestToSend;             
-
-                port1.Open();
-                System.Threading.Thread.Sleep(120);
-                CambiaSeniales(port1);
-
-                return portErr;
-            }
-            catch (Exception ex)
-            {
-                portErr.CodError = (int)ErrComunicacion.CONEX_SERIALex;
-                portErr.Descripcion = "Error de conexión. No puedo establecerse la comunicación.";
-                portErr.Estado = 0;
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + portErr.CodError + " " + portErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
-
-                return portErr;
-            }
-        }
-        private bool LogInTelefono(string routerUser, string tel0800)
-        {
-            int inp = 0;
-            System.Threading.Thread.Sleep(1000);
-            inputSerial = port1.ReadExisting();
-
-            Error errTelefonoSerie = new Error();
-            ModuloDeRegistro.RegistrarMensaje("InputSerial Login -1: ", lvlLogDebug, TimeStampLog);
-            ModuloDeRegistro.RegistrarMensaje(inputSerial, lvlLogDebug, TimeStampLog);
-            while (!inputSerial.Contains("name") && inp < 15)
-            {
-                inp++;
-                //port1.DtrEnable = false;
-                port1.RtsEnable = true;
-
-                //port1.Write(new byte[]{0x0d}, 0,1);
-
-                port1.Write("AT DT " + "11000" + tel0800 + "\r");
-                System.Threading.Thread.Sleep(39000); //EsperaPuertoSerie(port1, 9 + tel0800.Length);//200//400
-
-                ModuloDeRegistro.RegistrarMensaje("CDHolding: " + port1.CDHolding.ToString() + " CtsHolding: " + port1.CtsHolding.ToString(), lvlLogDebug, TimeStampLog);
-                if (port1.CDHolding && port1.CtsHolding)
-                {
-                    inputSerial = port1.ReadExisting();
-                    port1.RtsEnable = false;
-                    //port1.DtrEnable = true;
-
-
-                    ModuloDeRegistro.RegistrarMensaje("InputSerial Login " + inp + ": ", lvlLogDebug, TimeStampLog);
-                    ModuloDeRegistro.RegistrarMensaje(inputSerial, lvlLogDebug, TimeStampLog);
-
-                    if (inputSerial.Length > 30)
-                        inputSerial = inputSerial.Substring(inputSerial.Length - 30);
-
-                    errTelefonoSerie = LeeErrTelefonoSerie(inputSerial);
-                    if (errTelefonoSerie.CodError != 0 && errTelefonoSerie.Descripcion != "SinRespuesta")
-                    {
-                        ModuloDeRegistro.RegistrarMensaje("Error Telefono: intento de conexión " + inp + ": " + errTelefonoSerie.CodError + " - " + errTelefonoSerie.Descripcion, lvlLogError, TimeStampLog);
-                        return false;
-                    }
-                }
-            }
-
-            inp = 0;
-
-            System.Threading.Thread.Sleep(500);
-            port1.WriteLine("ivicom"); //routerUser
-
-            EsperaPuertoSerie(port1, "ivicom".Length);
-
-            while (inp < 3)//10
-            {
-                inp++;
-                //if (port1.DsrHolding)
-                //{
-                EsperaPuertoSerie(port1, 350);
-                inputSerial = port1.ReadExisting();
-
-                if (inputSerial.Length > 30)
-                    inputSerial = inputSerial.Substring(inputSerial.Length - 30);
-
-                if (inputSerial.Contains("Connected"))
-                {
-                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA.", lvlLogCxn, TimeStampLog);
-                    port1.DiscardInBuffer();
-                    return true;
-                }
-                else if (inputSerial.Contains("BUSY") || inputSerial.Contains("NO CARRIER"))
-                {
-                    System.Threading.Thread.Sleep(500);
-                }
-                else
-                {
-                    errTelefonoSerie = LeeErrTelefonoSerie(inputSerial);
-                    if (errTelefonoSerie.CodError != 0 && errTelefonoSerie.Descripcion != "SinRespuesta")
-                    {
-                        ModuloDeRegistro.RegistrarMensaje("Error Telefono: " + errTelefonoSerie.CodError + " - " + errTelefonoSerie.Descripcion, lvlLogError, TimeStampLog);
-                        return false;
-                    }
-                }
-            }
-
-            port1.RtsEnable = false;
-            return false;
-        }
-
-        //Radio Serie
-        private Error AbrePuertoRadio()
-        {
-            Error portErr = new Error();
-            esPorPuertoSerie = true;
-            try
-            {
-                //pe = new Logger(TransacManager.ProtoConfig.CONFIG);                
-
-                string[] portsCom = SerialPort.GetPortNames();
-                string portComDisponibles = "Puertos disponibles: ";
-                foreach (string st in portsCom)
-                {
-                    portComDisponibles = portComDisponibles + st + " ";
-                }
-
-                ModuloDeRegistro.RegistrarMensaje(portComDisponibles, lvlLogDebug, TimeStampLog);
-                ModuloDeRegistro.RegistrarMensaje("Puerto para RADIO: " + GestorTransacciones.ProtoConfig.CONFIG.NombrePuertoRadio, lvlLogDebug, TimeStampLog);
-
-                port1 = new SerialPort(GestorTransacciones.ProtoConfig.CONFIG.NombrePuertoRadio, GestorTransacciones.ProtoConfig.CONFIG.BaudRateRadio, (Parity)GestorTransacciones.ProtoConfig.CONFIG.ParityRadio, GestorTransacciones.ProtoConfig.CONFIG.DataBitsRadio, (StopBits)GestorTransacciones.ProtoConfig.CONFIG.StopBitsRadio);
-                port1.ReadTimeout = GestorTransacciones.ProtoConfig.CONFIG.ReadTimeOutRadio;
-                port1.WriteTimeout = GestorTransacciones.ProtoConfig.CONFIG.WriteTimeOutRadio;
-                port1.ReadBufferSize = GestorTransacciones.ProtoConfig.CONFIG.ReadBufferSizeRadio;
-                port1.WriteBufferSize = GestorTransacciones.ProtoConfig.CONFIG.WriteBufferSizeRadio;
-                port1.ErrorReceived += port1_ErrorReceived;
-                //port1.Handshake = Handshake.XOnXOff;//(Handshake)CONFIG.HandshakeRadio; //Handshake.RequestToSend;             
+        #endregion
                 
-                port1.Open();
-                System.Threading.Thread.Sleep(120);
-                CambiaSeniales(port1);
-
-                return portErr;
-            }           
-            catch (Exception ex)
-            {
-                portErr.CodError = (int)ErrComunicacion.CONEX_SERIALex;
-                portErr.Descripcion = "Error de conexión. No puedo establecerse la comunicación.";
-                portErr.Estado = 0;
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + portErr.CodError + " " + portErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
-
-                return portErr;
-            }
-        }
-        private bool LogInRadio(string routerUser)
-        {
-            int inp = 0;
-            System.Threading.Thread.Sleep(GestorTransacciones.ProtoConfig.CONFIG.ReadTimeOutRadio);
-            inputSerial = port1.ReadExisting();
-
-            string errRadio = "";
-            ModuloDeRegistro.RegistrarMensaje("InputSerial Login -1: ", lvlLogDebug, TimeStampLog);
-            ModuloDeRegistro.RegistrarMensaje(inputSerial, lvlLogDebug, TimeStampLog);
-            while (!inputSerial.Contains("name") && inp < 15)
-            {
-                inp++;
-                port1.RtsEnable = false;
-                //port1.Write(new byte[]{0x0d}, 0,1);
-                ModuloDeRegistro.RegistrarMensaje("CDHolding: " + port1.CDHolding.ToString() + " CtsHolding: " + port1.CtsHolding.ToString(), lvlLogDebug, TimeStampLog);
-                if (port1.CDHolding && port1.CtsHolding)
-                {
-                    //port1.RtsEnable = true;
-                    EsperaPuertoSerie(port1, 200);//400
-                    port1.RtsEnable = true;
-                    inputSerial = port1.ReadExisting();
-
-                    ModuloDeRegistro.RegistrarMensaje("InputSerial Login " + inp + ": ", lvlLogDebug, TimeStampLog);
-                    ModuloDeRegistro.RegistrarMensaje(inputSerial, lvlLogDebug, TimeStampLog);
-
-                    if (inputSerial.Length > 30)
-                        inputSerial = inputSerial.Substring(inputSerial.Length - 30);
-
-                    errRadio = LeeErrRadio(inputSerial);
-                    if (errRadio != "SinError" && errRadio != "SinRespuesta")
-                    {
-                        ModuloDeRegistro.RegistrarMensaje("Error radio " + inp + ": " + errRadio.ToString(), lvlLogDebug, TimeStampLog);
-                        return false;
-                    }
-                }
-            }
-
-            inp = 0;
-
-            System.Threading.Thread.Sleep(500);
-            port1.WriteLine(routerUser);
-
-            EsperaPuertoSerie(port1, routerUser.Length);
-
-            while (inp < 3)//10
-            {
-                inp++;
-                //if (port1.DsrHolding)
-                //{
-                EsperaPuertoSerie(port1, 350);
-                inputSerial = port1.ReadExisting();
-
-                if (inputSerial.Contains("Open"))
-                {
-                    ModuloDeRegistro.RegistrarMensaje("CONEXIÓN EXITOSA.", lvlLogCxn, TimeStampLog);
-                    port1.DiscardInBuffer();
-                    return true;
-                }
-                else if (inputSerial.Contains("%"))
-                {
-                    if (inputSerial.Length > 30)
-                        inputSerial = inputSerial.Substring(inputSerial.Length - 30);
-
-                    errRadio = LeeErrRadio(inputSerial);
-                    if (errRadio != "SinError" && errRadio != "SinRespuesta")
-                        return false;
-                }
-                else
-                    System.Threading.Thread.Sleep(500);//Estaba debajo de inp++
-                //}
-            }
-
-            port1.RtsEnable = false;
-            return false;
-        }
-        private Error Crea_PRN_Radio(Terminal ter)
-        {
-            string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
-
-            GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
-            Error cxnErr = new Error();
-
-            try
-            {
-                #region // PROCESO DE CONEXIÓN
-                bool sale = false;
-                int fusible = 0;
-                while (sale == false) // INTENTA HASTA CONECTAR CON PRN
-                {
-                    string res = cxn.Leer_XMLprn(out nombre1, out nombre2, out nombre3, out port1, out  port2, out port3, out tel1, out tel2, out tel3, GestorTransacciones.ProtoConfig.CONFIG);
-
-                    if (res == null) // EXISTE PRN
-                    {
-                        #region // INTENTA CONECTAR CON PRN
-                        string[] nom = { nombre1, nombre2, nombre3 };
-                        string[] por = { port1, port2, port3 };
-                        string[] tel = { tel1, tel2, tel3 };
-
-                        for (int j = 0; j < 3; j++)
-                        {
-                            try
-                            {
-                                if (nom[j] != null)
-                                {
-                                    sale = LogInRadio(nom[j]);
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                ModuloDeRegistro.RegistrarMensaje("RADIO: Excepción al intentar con PRN:Nombre " + j.ToString(), lvlLogCxn, TimeStampLog);
-                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
-                            }
-                            if (sale == true)
-                            {
-                                UltimaConexionOptima[0] = nom[j];
-                                UltimaConexionOptima[1] = por[j];
-                                UltimaConexionOptima[2] = tel[j];
-                                break;
-                            }
-                            else
-                                ModuloDeRegistro.RegistrarMensaje("RADIO: Intento con PRN: Nombre " + nom[j] + " falló.", lvlLogCxn, TimeStampLog);
-                        }
-                        #endregion
-
-                        if (fusible >= 2 && sale == false)
-                        {
-                            sale = true;
-                            cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
-                            cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación. Se superaron los intentos de conexión.";
-                            cxnErr.Estado = 0;
-                            break;
-                        }
-
-                        if (sale == false)
-                        {
-                            #region // FALLÓ PRN, INTENTA CON CONFIG.BIN
-                            cxn.Borrar_XMLprn(GestorTransacciones.ProtoConfig.CONFIG);
-
-                            try
-                            {
-                                sale = LogInRadio(GestorTransacciones.ProtoConfig.CONFIG.Host);
-                            }
-                            catch (Exception e)
-                            {
-                                ModuloDeRegistro.RegistrarMensaje("RADIO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
-                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
-                            }
-
-                            if (sale == false)
-                            {
-                                ModuloDeRegistro.RegistrarMensaje("RADIO: Intento valores por defecto: Nombre " + GestorTransacciones.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
-                                cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
-                                cxnErr.Descripcion = "Error de conexión. No pudo establecerse una comunicación con los valores del PRN, ni los por defecto.";
-                                cxnErr.Estado = 0;
-
-                                CierraPuertoSerie();
-
-                                sale = true;
-                            }
-                            else
-                            {
-                                UltimaConexionOptima[0] = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer.ToString();
-                                UltimaConexionOptima[1] = GestorTransacciones.ProtoConfig.CONFIG.Port.ToString();
-                                UltimaConexionOptima[2] = GestorTransacciones.ProtoConfig.CONFIG.Telefono;
-
-                                Comunicacion cm = new Comunicacion(GestorTransacciones.ProtoConfig.BASE_CONFIG, GestorTransacciones.ProtoConfig.CONFIG);
-                                IList rdo = cm.InteraccionAB(ref ter, true);
-
-                                if (rdo[0] is Error)
-                                {
-                                    if (((Error)rdo[0]).CodError != 0)
-                                    {
-                                        cxnErr = (Error)rdo;
-                                        sale = true;
-                                    }
-                                    else
-                                    {
-                                        CierraPuertoSerie();
-                                        cxnErr = AbrePuertoRadio();
-                                        if (cxnErr.CodError == 0)
-                                            sale = false;
-                                        else
-                                        {
-                                            CierraPuertoSerie();
-                                            return cxnErr;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    cxnErr.CodError = (int)ErrComunicacion.CXN_NO_GENERA_PRN;
-                                    cxnErr.Descripcion = "Error de conexión. No se pudo obtener el PRN.";
-                                    cxnErr.Estado = 0;
-                                    CierraPuertoSerie();
-                                    return cxnErr;
-                                }
-                                fusible++;
-                            }
-                            #endregion
-                        }
-                    }
-                    else // NO EXISTE PRN
-                    {
-                        #region // INTENTA CONECTAR CON CONFIG.BIN
-                        try
-                        {
-                            sale = LogInRadio(GestorTransacciones.ProtoConfig.CONFIG.Host);
-                        }
-                        catch (Exception e)
-                        {
-                            ModuloDeRegistro.RegistrarMensaje("RADIO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
-                            ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
-                        }
-
-                        if (sale == false)
-                        {
-                            ModuloDeRegistro.RegistrarMensaje("RADIO: Intento valores por defecto: Nombre " + GestorTransacciones.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
-                            cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
-                            cxnErr.Descripcion = "Error de conexión. No pudo establecerse una comunicación con los valores del PRN, ni los por defecto.";
-                            cxnErr.Estado = 0;
-                            CierraPuertoSerie();
-                            sale = true;
-                        }
-                        else
-                        {
-                            UltimaConexionOptima[0] = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer.ToString();
-                            UltimaConexionOptima[1] = GestorTransacciones.ProtoConfig.CONFIG.Port.ToString();
-                            UltimaConexionOptima[2] = GestorTransacciones.ProtoConfig.CONFIG.Telefono;
-
-                            Comunicacion cm = new Comunicacion(GestorTransacciones.ProtoConfig.BASE_CONFIG, GestorTransacciones.ProtoConfig.CONFIG);
-                            IList rdo = cm.InteraccionAB(ref ter, true);
-                            if (rdo[0] is Error)
-                            {
-                                if (((Error)rdo[0]).CodError != 0)
-                                {
-                                    cxnErr = (Error)rdo;
-                                    sale = true;
-                                }
-                                else
-                                {
-                                    CierraPuertoSerie();
-                                    cxnErr = AbrePuertoRadio();
-                                    if (cxnErr.CodError == 0)
-                                        sale = false;
-                                    else
-                                    {
-                                        CierraPuertoSerie();
-                                        return cxnErr;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                cxnErr.CodError = (int)ErrComunicacion.CXN_NO_GENERA_PRN;
-                                cxnErr.Descripcion = "Error de conexión. No se pudo obtener el PRN.";
-                                cxnErr.Estado = 0;
-                                CierraPuertoSerie();
-                                return cxnErr;
-                            }
-                            fusible++;
-                        }
-                        #endregion
-
-                        if (fusible >= 2 && sale == false)
-                        {
-                            sale = true;
-                            cxnErr.CodError = (int)ErrComunicacion.CONEXION;
-                            cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación. Se superaron los intentos de conexión.";
-                            cxnErr.Estado = 0;
-
-                            CierraPuertoSerie();
-                            break;
-                        }
-                    }
-                }
-                #endregion
-
-                if (cxnErr.CodError != 0)
-                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
-
-                return cxnErr;
-            }
-            catch (Exception ex)
-            {
-                cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIALex;
-                cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación.";
-                cxnErr.Estado = 0;
-
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
-
-                return cxnErr;
-            }
-
-        }
-        private Error Crea_PRN_TelefonoSerie(Terminal ter)
-        {
-            string nombre1, nombre2, nombre3, port1, port2, port3, tel1, tel2, tel3;
-
-            GestorArchivoConfiguracionConexion cxn = new GestorArchivoConfiguracionConexion();
-            Error cxnErr = new Error();
-
-            try
-            {
-                #region // PROCESO DE CONEXIÓN
-                bool sale = false;
-                int fusible = 0;
-                while (sale == false) // INTENTA HASTA CONECTAR CON PRN
-                {
-                    string res = cxn.Leer_XMLprn(out nombre1, out nombre2, out nombre3, out port1, out  port2, out port3, out tel1, out tel2, out tel3, GestorTransacciones.ProtoConfig.CONFIG);
-
-                    if (res == null) // EXISTE PRN
-                    {
-                        #region // INTENTA CONECTAR CON PRN
-                        string[] nom = { nombre1, nombre2, nombre3 };
-                        string[] por = { port1, port2, port3 };
-                        string[] tel = { tel1, tel2, tel3 };
-
-                        for (int j = 0; j < 3; j++)
-                        {
-                            try
-                            {
-                                if (nom[j] != null)
-                                {
-                                    sale = LogInTelefono(nom[j], tel[j]);
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                ModuloDeRegistro.RegistrarMensaje("TELEFONO: Excepción al intentar con PRN:Nombre " + j.ToString(), lvlLogExcepciones, TimeStampLog);
-                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
-                            }
-                            if (sale == true)
-                            {
-                                UltimaConexionOptima[0] = nom[j];
-                                UltimaConexionOptima[1] = por[j];
-                                UltimaConexionOptima[2] = tel[j];
-                                break;
-                            }
-                            else
-                                ModuloDeRegistro.RegistrarMensaje("TELEFONO: Intento con PRN: Nombre " + nom[j] + " falló.", lvlLogCxn, TimeStampLog);
-                        }
-                        #endregion
-
-                        if (fusible >= 2 && sale == false)
-                        {
-                            sale = true;
-                            cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
-                            cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación. Se superaron los intentos de conexión.";
-                            cxnErr.Estado = 0;
-                            break;
-                        }
-
-                        if (sale == false)
-                        {
-                            #region // FALLÓ PRN, INTENTA CON CONFIG.BIN
-                            cxn.Borrar_XMLprn(GestorTransacciones.ProtoConfig.CONFIG);
-
-                            try
-                            {
-                                sale = LogInTelefono(GestorTransacciones.ProtoConfig.CONFIG.Host, GestorTransacciones.ProtoConfig.CONFIG.Telefono);
-                            }
-                            catch (Exception e)
-                            {
-                                ModuloDeRegistro.RegistrarMensaje("TELEFONO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
-                                ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
-                            }
-
-                            if (sale == false)
-                            {
-                                ModuloDeRegistro.RegistrarMensaje("TELEFONO: Intento valores por defecto: Nombre " + GestorTransacciones.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
-                                cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
-                                cxnErr.Descripcion = "Error de conexión. No pudo establecerse una comunicación con los valores del PRN, ni los por defecto.";
-                                cxnErr.Estado = 0;
-
-                                CierraPuertoSerie();
-
-                                sale = true;
-                            }
-                            else
-                            {
-                                UltimaConexionOptima[0] = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer.ToString();
-                                UltimaConexionOptima[1] = GestorTransacciones.ProtoConfig.CONFIG.Port.ToString();
-                                UltimaConexionOptima[2] = GestorTransacciones.ProtoConfig.CONFIG.Telefono;
-
-                                Comunicacion cm = new Comunicacion(GestorTransacciones.ProtoConfig.BASE_CONFIG, GestorTransacciones.ProtoConfig.CONFIG);
-                                IList rdo = cm.InteraccionAB(ref ter, true);
-
-                                if (rdo[0] is Error)
-                                {
-                                    if (((Error)rdo[0]).CodError != 0)
-                                    {
-                                        cxnErr = (Error)rdo;
-                                        sale = true;
-                                    }
-                                    else
-                                    {
-                                        CierraPuertoSerie();
-                                        cxnErr = AbrePuertoTelefono();
-                                        if (cxnErr.CodError == 0)
-                                            sale = false;
-                                        else
-                                        {
-                                            CierraPuertoSerie();
-                                            return cxnErr;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    cxnErr.CodError = (int)ErrComunicacion.CXN_NO_GENERA_PRN;
-                                    cxnErr.Descripcion = "Error de conexión. No se pudo obtener el PRN.";
-                                    cxnErr.Estado = 0;
-                                    CierraPuertoSerie();
-                                    return cxnErr;
-                                }
-                                fusible++;
-                            }
-                            #endregion
-                        }
-                    }
-                    else // NO EXISTE PRN
-                    {
-                        #region // INTENTA CONECTAR CON CONFIG.BIN
-                        try
-                        {
-                            sale = LogInTelefono(GestorTransacciones.ProtoConfig.CONFIG.Host, GestorTransacciones.ProtoConfig.CONFIG.Telefono);
-                        }
-                        catch (Exception e)
-                        {
-                            ModuloDeRegistro.RegistrarMensaje("TELEFONO: Excepción al intentar con valores por defecto.", lvlLogExcepciones, TimeStampLog);
-                            ModuloDeRegistro.RegistrarMensaje(e.Message + " \n" + e.InnerException, lvlLogDebug, TimeStampLog);
-                        }
-
-                        if (sale == false)
-                        {
-                            ModuloDeRegistro.RegistrarMensaje("TELEFONO: Intento valores por defecto: Nombre " + GestorTransacciones.ProtoConfig.CONFIG.Host + " falló.", lvlLogCxn, TimeStampLog);
-                            cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIAL;
-                            cxnErr.Descripcion = "Error de conexión. No pudo establecerse una comunicación con los valores del PRN, ni los por defecto.";
-                            cxnErr.Estado = 0;
-                            CierraPuertoSerie();
-                            sale = true;
-                        }
-                        else
-                        {
-                            UltimaConexionOptima[0] = GestorTransacciones.ProtoConfig.CONFIG.DefaultServer.ToString();
-                            UltimaConexionOptima[1] = GestorTransacciones.ProtoConfig.CONFIG.Port.ToString();
-                            UltimaConexionOptima[2] = GestorTransacciones.ProtoConfig.CONFIG.Telefono;
-
-                            Comunicacion cm = new Comunicacion(GestorTransacciones.ProtoConfig.BASE_CONFIG, GestorTransacciones.ProtoConfig.CONFIG);
-                            IList rdo = cm.InteraccionAB(ref ter, true);
-                            if (rdo[0] is Error)
-                            {
-                                if (((Error)rdo[0]).CodError != 0)
-                                {
-                                    cxnErr = (Error)rdo;
-                                    sale = true;
-                                }
-                                else
-                                {
-                                    CierraPuertoSerie();
-                                    cxnErr = AbrePuertoTelefono();
-                                    if (cxnErr.CodError == 0)
-                                        sale = false;
-                                    else
-                                    {
-                                        CierraPuertoSerie();
-                                        return cxnErr;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                cxnErr.CodError = (int)ErrComunicacion.CXN_NO_GENERA_PRN;
-                                cxnErr.Descripcion = "Error de conexión. No se pudo obtener el PRN.";
-                                cxnErr.Estado = 0;
-                                CierraPuertoSerie();
-                                return cxnErr;
-                            }
-                            fusible++;
-                        }
-                        #endregion
-
-                        if (fusible >= 2 && sale == false)
-                        {
-                            sale = true;
-                            cxnErr.CodError = (int)ErrComunicacion.CONEXION;
-                            cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación. Se superaron los intentos de conexión.";
-                            cxnErr.Estado = 0;
-
-                            CierraPuertoSerie();
-                            break;
-                        }
-                    }
-                }
-                #endregion
-
-                if (cxnErr.CodError != 0)
-                    ModuloDeRegistro.RegistrarMensaje("Error de conexión: " + cxnErr.CodError + "\n" + " Descripción: " + cxnErr.Descripcion + "\n", lvlLogError, TimeStampLog);
-
-                return cxnErr;
-            }
-            catch (Exception ex)
-            {
-                cxnErr.CodError = (int)ErrComunicacion.CONEX_SERIALex;
-                cxnErr.Descripcion = "Error de conexión. No puede establecerse una comunicación.";
-                cxnErr.Estado = 0;
-
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + cxnErr.CodError + " " + cxnErr.Descripcion, lvlLogExcepciones, TimeStampLog);
-                ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
-
-                return cxnErr;
-            }
-
-        }
-
-        static void port1_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
-        {            
-            SerialPort sp = (SerialPort)sender;            
-        }        
-        private static void CierraPuertoSerie()
-        {
-            if (port1 != null)
-            {
-                if (port1.IsOpen)
-                {
-                    port1.RtsEnable = false;
-                    System.Threading.Thread.Sleep(100);
-                    port1.Close();
-                }
-                port1.Dispose();
-            }
-        }
-        #endregion
-
-        #region TRANSACCIONES
-        
-        #endregion
-        
         #region ENVIO Y RECEPCION
-        public void Enviar(byte[] aEnviar, EnumPaquete tipo, ushort orden, int intentos = 0)
+        private void Enviar(Terminal terminal, EnumPaquete tipo, ushort orden, int intentos = 0)
         {
             ModuloDeRegistro.RegistrarMensaje("// ENVIA ////////////////////////////////////////////////////////////\n", NLog.LogLevel.Info, false);
-            if (GestorTransacciones.ProtoConfig.NACK_ENV == NackEnv.SINERROR)
-            {
-                var label = tipo == EnumPaquete.DATOS 
-                    ? "Mensaje " + Encoding.UTF8.GetChars(aEnviar, 0, 1).FirstOrDefault().ToString()
-                    : "Envia " + tipo.ToString();
-                ModuloDeRegistro.LogBuffer(aEnviar, label + " ( " + aEnviar.Length.ToString() + "b )", aEnviar.Length, lvlLogTransaccion);
-            }
-            else
-                ModuloDeRegistro.LogBuffer(aEnviar, "Envia NACK tipo " + GestorTransacciones.ProtoConfig.NACK_ENV + " ( " + aEnviar.Length.ToString() + "b )", aEnviar.Length, lvlLogError);
-
+           
             byte[] aEnviar4;
-            Error Err = TR.Pack(aEnviar, out aEnviar4, tipo, orden);
+            Error Err = GestorTransacciones.Pack(terminal, UltimaConexionOptima, out aEnviar4, tipo, orden);
 
             if (Err.CodError != 0) { }
 
-            if (!esPorPuertoSerie)
-                bytesCount = sender.Send(aEnviar4);
-            else
-            {
-                try
-                {                    
-                    if (port1.CtsHolding == true)
-                    {
-                        if (GestorTransacciones.ProtoConfig.TIPO_CXN == EnumModoConexion.RADIO)
-                        {
-                            System.Threading.Thread.Sleep(100);                            
-                            port1.Write(aEnviar4, 0, aEnviar4.Length);
-                            EsperaPuertoSerie(port1, aEnviar4.Length);
-                            //System.Threading.Thread.Sleep(100);                        
-                        }
-                        else if(GestorTransacciones.ProtoConfig.TIPO_CXN == EnumModoConexion.DIALUP )
-                        {
-                            System.Threading.Thread.Sleep(100);
-                            
-                            port1.Write(aEnviar4, 0, aEnviar4.Length);
-                            port1.WriteLine("01 02 00 00 00 4d 41 00 00 03 0d 00 00 c3 6b 4d 7c 6d 07 33 30 30 39 31 34 31 37 30 34 32 30 00 6d 00 20 00 c1 00 87 ab 67 00 96 14 86 30 38 30 30 36 36 36 35 38 30 37 20 20 20 20 20 20 20 57 69 6e 37 78 38 36 02 00 51 40 f4 83 03");
-
-                            EsperaPuertoSerie(port1, aEnviar4.Length);
-                        }
-                    }
-                    else
-                    {
-                        if (intentos < 3)
-                        {
-                            intentos++;
-                            Enviar(new byte[MetodologiaConfig.TamBuffer], tipo, orden, intentos);
-                        }
-                        else
-                            throw new ArgumentException("Señal CTS (Clear To Send) en falso. Cantidad máxima de intentos superada.");
-                    }                   
-                }
-                catch
-                {
-                     throw;
-                }
-                    
-            }            
+            Socket.Send(aEnviar4);
+            
         }        
-        public IList Recibir(byte[] aRecibir, int tipoEsperado, ushort orden, string tipoMen, int intentos = 0)
+        private IList Recibir(byte[] aRecibir, int tipoEsperado, ushort orden, string tipoMen, int intentos = 0)
         {            
             Error Err = new Error();
             IList objMensaje = new List<object>();
             try
             {
-                #region ETHERNET
-                if (!esPorPuertoSerie)
-                {
-                    bytesCount = sender.Receive(aRecibir);
-                    Array.Resize(ref aRecibir, bytesCount);
-                }
-                #endregion
-                #region TELEFONO
-                else if (GestorTransacciones.ProtoConfig.TIPO_CXN == EnumModoConexion.DIALUP)
-                {
-                    byte[] bytepr = new byte[MetodologiaConfig.TamBuffer];
-                    int con = 0;
-                    try
-                    {
-                        //System.Threading.Thread.Sleep(100);
-                        EsperaPuertoSerie(port1, port1.ReceivedBytesThreshold);
-                        if (port1.DsrHolding == true)
-                        {
-                            ModuloDeRegistro.RegistrarMensaje("Comienza a buscar 0x01", lvlLogDebug, TimeStampLog);
-                            while (bytePuertoSerie != 0x01)
-                            {
-                                bytePuertoSerie = Convert.ToByte(port1.ReadByte());
-                                if (bytePuertoSerie.ToString() == "%")
-                                {
-                                    string msgEr = port1.ReadExisting();
-                                    ModuloDeRegistro.RegistrarMensaje(msgEr, lvlLogError, TimeStampLog);
-                                    objMensaje.Insert(0, new Error("Ha ocurrido una falla en la conexión.", (uint)ErrComunicacion.CONEX_SERIAL, 0));
-                                    return objMensaje;
-                                }
-
-                                bytepr[con] = (byte)bytePuertoSerie;
-                                con++;
-                            }
-
-                            ModuloDeRegistro.RegistrarMensaje("Encuentra 0x01", lvlLogDebug, TimeStampLog);
-                            Array.Resize(ref bytepr, con);
-                            if (bytepr.Length > 2)
-                                ModuloDeRegistro.LogBuffer(bytepr, "Bytes de Radio ajenos al protocolo normal. Normalmente no viene nada.", bytepr.Length, lvlLogDebug);
-
-                            aRecibir = new byte[MetodologiaConfig.TamBuffer];
-                            aRecibir[0] = bytePuertoSerie;
-                            con = 1;
-
-                            while (bytePuertoSerie != 0x03)
-                            {
-                                bytePuertoSerie = LeeBytePuertoSerie(ref objMensaje);
-
-                                if (bytePuertoSerie.ToString() == "%")
-                                {
-                                    return objMensaje;
-                                }
-
-                                aRecibir[con] = bytePuertoSerie;
-                                con++;
-                            }
-                            ModuloDeRegistro.RegistrarMensaje("Encuentra 0x03", lvlLogDebug, TimeStampLog);
-                            Array.Resize(ref aRecibir, con);
-                            //port1.RtsEnable = false;
-                            port1.DiscardInBuffer();
-                        }
-                        else
-                        {
-                            objMensaje.Insert(0, new Error("Se ha perdido el vínculo físico.", (uint)ErrComunicacion.CONEX_SERIAL, 0));
-                            return objMensaje;
-                        }
-
-                    }
-                    catch
-                    {
-                        CierraPuertoSerie();
-                        ModuloDeRegistro.RegistrarMensaje("Vínculo telefónico caído. Restableciendo...", lvlLogTransaccion, TimeStampLog);
-                        if (intentos < 3)
-                        {
-                            ModuloDeRegistro.RegistrarMensaje("Reintento de conexión " + intentos.ToString(), lvlLogDebug, TimeStampLog);
-
-                            Error erPort = AbrePuertoTelefono();
-
-                            if (erPort.CodError == 0)
-                            {
-                                if (intentos < 3 && LogInTelefono("motor4", UltimaConexionOptima[2]))
-                                {
-                                    intentos++;
-                                    return Recibir(new byte[MetodologiaConfig.TamBuffer], tipoEsperado, orden, tipoMen, intentos);
-                                }
-                            }
-                            ModuloDeRegistro.RegistrarMensaje("Falló reintento " + intentos.ToString(), lvlLogDebug, TimeStampLog);
-                            throw;
-                        }
-                        else
-                        {
-                            Array.Resize(ref bytepr, con);
-                            ModuloDeRegistro.LogBuffer(bytepr, "Superados intentos. Esto se recibió: ", bytepr.Length, lvlLogDebug);
-                            throw;
-                        }
-                    }
-                }
-                #endregion
-                #region PUERTO SERIE
-                else if (GestorTransacciones.ProtoConfig.TIPO_CXN == EnumModoConexion.RADIO)
-                {
-                    byte[] bytepr = new byte[MetodologiaConfig.TamBuffer];
-                    int con = 0;
-                    try
-                    {
-                        //System.Threading.Thread.Sleep(100);
-                        EsperaPuertoSerie(port1, port1.ReceivedBytesThreshold);
-                        //if (port1.DsrHolding == true && port1.CDHolding == true)
-                        //{
-                        ModuloDeRegistro.RegistrarMensaje("Comienza a buscar 0x01", lvlLogDebug, TimeStampLog);
-                        while (bytePuertoSerie != 0x01)
-                        {
-                            bytePuertoSerie = Convert.ToByte(port1.ReadByte());
-                            if (bytePuertoSerie.ToString() == "%")
-                            {
-                                string msgEr = port1.ReadExisting();
-                                ModuloDeRegistro.RegistrarMensaje(msgEr, lvlLogError, TimeStampLog);
-                                objMensaje.Insert(0, new Error("Ha ocurrido una falla en la conexión.", (uint)ErrComunicacion.CONEX_SERIAL, (uint)0));
-                                return objMensaje;
-                            }
-
-                            bytepr[con] = (byte)bytePuertoSerie;
-                            con++;
-                        }
-
-                        ModuloDeRegistro.RegistrarMensaje("Encuentra 0x01", lvlLogDebug, TimeStampLog);
-                        Array.Resize(ref bytepr, con);
-                        if (bytepr.Length > 2)
-                            ModuloDeRegistro.LogBuffer(bytepr, "Bytes de Radio ajenos al protocolo normal. Normalmente no viene nada.", bytepr.Length, lvlLogDebug);
-
-                        aRecibir = new byte[MetodologiaConfig.TamBuffer];
-                        aRecibir[0] = bytePuertoSerie;
-                        con = 1;
-
-                        while (bytePuertoSerie != 0x03)
-                        {
-                            bytePuertoSerie = LeeBytePuertoSerie(ref objMensaje);
-
-                            if (bytePuertoSerie.ToString() == "%")
-                            {
-                                return objMensaje;
-                            }
-
-                            aRecibir[con] = bytePuertoSerie;
-                            con++;
-                        }
-                        ModuloDeRegistro.RegistrarMensaje("Encuentra 0x03", lvlLogDebug, TimeStampLog);
-                        Array.Resize(ref aRecibir, con);
-                        //port1.RtsEnable = false;
-                        port1.DiscardInBuffer();
-                        //}
-                        //else
-                        //{
-                        //    mensajeR.Insert(0, new Error("Se ha perdido el vínculo físico.", (uint)ErrComunicacion.CONEX_SERIAL, 0));
-                        //    return mensajeR;
-                        //}
-
-                    }
-                    catch
-                    {
-                        CierraPuertoSerie();
-
-
-                        ModuloDeRegistro.RegistrarMensaje("Vínculo de radio caído. Restableciendo...", lvlLogTransaccion, TimeStampLog);
-                        if (intentos < 3)
-                        {
-                            ModuloDeRegistro.RegistrarMensaje("Reintento de conexión " + intentos.ToString(), lvlLogDebug, TimeStampLog);
-
-                            Error erPort = AbrePuertoRadio();
-
-                            if (erPort.CodError == 0)
-                            {
-                                if (intentos < 3 && LogInRadio(UltimaConexionOptima[0]))
-                                {
-                                    intentos++;
-                                    return Recibir(new byte[MetodologiaConfig.TamBuffer], tipoEsperado, orden, tipoMen, intentos);
-                                }
-                            }
-                            ModuloDeRegistro.RegistrarMensaje("Falló reintento " + intentos.ToString(), lvlLogDebug, TimeStampLog);
-                            throw;
-                        }
-                        else
-                        {
-                            Array.Resize(ref bytepr, con);
-                            ModuloDeRegistro.LogBuffer(bytepr, "Bytes de Radio: fallaron " + intentos.ToString() + " intentos. Esto se recibió: ", bytepr.Length, lvlLogDebug);
-                            throw;
-                        }
-                    }
-                }
-                #endregion
-
+                var bytesCount = Socket.Receive(aRecibir);
+                Array.Resize(ref aRecibir, bytesCount);
+                
                 ModuloDeRegistro.RegistrarMensaje("// RECIBE ///////////////////////////////////////////////////////////\n", NLog.LogLevel.Info, false);
                 byte[] salidaUnpack;
-                Err = TR.Unpack(aRecibir, out salidaUnpack);                
+                Err = GestorTransacciones.Unpack(aRecibir, out salidaUnpack);                
 
-                objMensaje = TR.MapeoObjetos(salidaUnpack, tipoEsperado, orden, tipoMen);
+                objMensaje = GestorTransacciones.MapeoObjetos(salidaUnpack, tipoEsperado, orden, tipoMen);
 
                 #region LOGS SIN ENMASCARAR
                 if (Err.CodError != 0)
                 {
-                    ModuloDeRegistro.RegistrarMensaje(Err.Descripcion, lvlLogError, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje(Err.Descripcion, NivelRegistroError, REGISTRAR_HORA);
                     return new List<object>() { Err };
                 }
-                if (tipoEsperado == 4 && Empaquetador.tipoPaqRec == (byte)EnumPaquete.EOT)
+                if (tipoEsperado == 4 && Empaquetador.TipoPaqueteRecibido == (byte)EnumPaquete.EOT)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Recibe EOT ", lvlLogTransaccion, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe EOT ", NivelRegistroTransaccion, REGISTRAR_HORA);
                     return objMensaje;
                 }
-                else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.EOT)
+                else if (Empaquetador.TipoPaqueteRecibido == (byte)EnumPaquete.EOT)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Recibe EOT INESPERADO en " + tipoMen, NLog.LogLevel.Warn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe EOT INESPERADO en " + tipoMen, NLog.LogLevel.Warn, REGISTRAR_HORA);
                     return objMensaje;
                 }
-                else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.NACK)
+                else if (Empaquetador.TipoPaqueteRecibido == (byte)EnumPaquete.NACK)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Recibe NACK causa " + objMensaje[0] + " en " + tipoMen, NLog.LogLevel.Warn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe NACK causa " + objMensaje[0] + " en " + tipoMen, NLog.LogLevel.Warn, REGISTRAR_HORA);
                     return objMensaje;
                 }
-                else if (tipoEsperado == (int)EnumPaquete.ACK && Empaquetador.tipoPaqRec == (byte)EnumPaquete.ACK)
+                else if (tipoEsperado == (int)EnumPaquete.ACK && Empaquetador.TipoPaqueteRecibido == (byte)EnumPaquete.ACK)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Recibe ACK ", lvlLogTransaccion, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe ACK ", NivelRegistroTransaccion, REGISTRAR_HORA);
                     return objMensaje;
                 }
-                else if (Empaquetador.tipoPaqRec == (byte)EnumPaquete.ACK)
+                else if (Empaquetador.TipoPaqueteRecibido == (byte)EnumPaquete.ACK)
                 {
-                    ModuloDeRegistro.RegistrarMensaje("Recibe ACK INESPERADO en " + tipoMen, NLog.LogLevel.Warn, TimeStampLog);
+                    ModuloDeRegistro.RegistrarMensaje("Recibe ACK INESPERADO en " + tipoMen, NLog.LogLevel.Warn, REGISTRAR_HORA);
                     return objMensaje;
                 }
                                 
-                ModuloDeRegistro.LogBuffer(salidaUnpack, "Mensaje " + tipoMen.Substring(0, 1) + " ( " + salidaUnpack.Length.ToString() + "b )", salidaUnpack.Length, lvlLogTransaccion);
+                ModuloDeRegistro.LogBuffer(salidaUnpack, "Mensaje " + tipoMen.Substring(0, 1) + " ( " + salidaUnpack.Length.ToString() + "b )", salidaUnpack.Length, NivelRegistroTransaccion);
 
                 #endregion
             }
             catch (SocketException es)
             {
-                ModuloDeRegistro.RegistrarMensaje("Excepción de Socket en Recibir(): " + es.ToString(), lvlLogExcepciones, TimeStampLog);
-                sender.Close();
+                ModuloDeRegistro.RegistrarMensaje("Excepción de Socket en Recibir(): " + es.ToString(), NivelRegistroExcepciones, REGISTRAR_HORA);
+                Socket.Close();
                 objMensaje.Add(new Error("Se perdió el vínculo de conexión.", (uint)ErrComunicacion.CXN_SOCKETex, (uint)0));
             }
             catch (Exception ex)
             {
                 //if (CONFIG.LevelLog == EnumMessageType.ERROR || CONFIG.LevelLog == EnumMessageType.DEBUG)
-                ModuloDeRegistro.RegistrarMensaje("Excepción en Recibir(): " + ex.ToString(), lvlLogExcepciones, TimeStampLog);
+                ModuloDeRegistro.RegistrarMensaje("Excepción en Recibir(): " + ex.ToString(), NivelRegistroExcepciones, REGISTRAR_HORA);
             }
             
             return objMensaje;            
@@ -1862,7 +747,7 @@ namespace LibreriaModuloTransaccional
         #endregion
         
         #region Manejo errores
-        public Error MensajeNack(object tipoNack)
+        private Error MensajeNack(object tipoNack)
         {
             Error er = new Error();
             if ((TIPOS_NACK.Contains((string)tipoNack)))
@@ -1891,12 +776,12 @@ namespace LibreriaModuloTransaccional
 
             return er;
         }
-        public Error EmpalmeErrorExcepcion(Exception ex, ErrComunicacion codigoError, string MensajeUsuario, uint estado = 99)
+        private Error EmpalmeErrorExcepcion(Exception ex, ErrComunicacion codigoError, string MensajeUsuario, uint estado = 99)
         {
             Error errEx = new Error();
             errEx.CodError = (uint)codigoError;
             errEx.Descripcion = MensajeUsuario;
-            if ((sender != null && sender.Connected) || (esPorPuertoSerie && Comunicacion.port1.IsOpen))
+            if ((Socket != null && Socket.Connected))
             {
                 if (estado == 99)
                     errEx.Estado = 1;
@@ -1905,76 +790,12 @@ namespace LibreriaModuloTransaccional
             }
             else
                 errEx.Estado = 0;
-            ModuloDeRegistro.RegistrarMensaje("Excepción: " + errEx.CodError + " " + errEx.Descripcion, lvlLogExcepciones, Comunicacion.TimeStampLog);
-            ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), lvlLogDebug, Comunicacion.TimeStampLog);
+            ModuloDeRegistro.RegistrarMensaje("Excepción: " + errEx.CodError + " " + errEx.Descripcion, NivelRegistroExcepciones, Comunicacion.REGISTRAR_HORA);
+            ModuloDeRegistro.RegistrarMensaje("Excepción: " + ex.ToString(), NivelRegistroDebug, Comunicacion.REGISTRAR_HORA);
             return errEx;
         }
         #endregion
-        #region Conexion
-        private void CambiaSeniales(SerialPort port)
-        {
-            port.DtrEnable = !port.DtrEnable;
-            port.RtsEnable = !port.RtsEnable;
-        }
-        private byte LeeBytePuertoSerie(ref IList objs)
-        {
-            byte by = Convert.ToByte(port1.ReadByte()); 
-            if (by.ToString() == "%")
-            {
-                string msgEr = port1.ReadExisting();
-                ModuloDeRegistro.RegistrarMensaje(msgEr, lvlLogError, TimeStampLog);
-                objs.Add(new Error("Ha ocurrido una falla en la conexión.", (uint)ErrComunicacion.CONEX_SERIAL, (uint)0));
-            }
-            return by;
-        }        
-        private void EsperaPuertoSerie(SerialPort port, int cantBytRec)
-        {
-            decimal deltaBaud = 0;
-            int ms = 0;
-            deltaBaud = (decimal)1000 / port1.BaudRate;
-
-            ms = (int)(deltaBaud * (cantBytRec * (port1.DataBits + 2)));
-            System.Threading.Thread.Sleep(ms*10);//2400            
-        }
-        private string LeeErrRadio(string inputStr)
-        {           
-            int i = inputStr.Length;
-            string salida = "";
-            char[] chArr = inputStr.ToCharArray();
-            if (i != 0)
-            {
-                i = inputStr.Length - 1;
-
-                while (chArr[i] != '%' && i != 0)
-                    i--;
-
-                if (i == 0)
-                    salida = "SinError";
-                else
-                {
-                    salida = inputStr.Substring(i);
-                    ModuloDeRegistro.RegistrarMensaje(salida, lvlLogError, TimeStampLog);
-                }
-            }
-            else
-                salida = "SinRespuesta";
-
-            return salida;
-        }
-        private Error LeeErrTelefonoSerie(string input)
-        {
-            Error err = new Error();
-            if (input.Length > 0 && input.Contains("NO CARRIER"))
-                err = new Error("Conexión telefónica interrumpida 'NO CARRIER'.", (uint)ErrComunicacion.CONEX_SERIAL, 1);
-            else if (input.Length > 0 && input.Contains("BUSY"))
-                err = new Error("Linea ocupada 'BUSY'.", (uint)ErrComunicacion.CONEX_SERIAL, 1);
-            else if (input.Length > 0 && input.Contains("NO DIALTONE"))
-                err = new Error("Sin tono o linea no conectada 'NO DIALTONE'.", (uint)ErrComunicacion.CONEX_SERIAL, 0);
-            else if (input.Length > 0) { }
-            else  err = new Error("SinRespuesta", (uint)ErrComunicacion.CONEX_SERIAL, 1);
-
-            return err;                
-        }
+        #region Conexion        
         private bool PuertoDisponible(int puerto)
         {
             IPGlobalProperties ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
@@ -1992,15 +813,17 @@ namespace LibreriaModuloTransaccional
         }
         #endregion
 
-        protected virtual void Dispose(bool disposeManagedResources)
-        {
-            if(sender != null)
-                sender.Dispose();
-        }
+        //protected virtual void Dispose(bool disposeManagedResources)
+        //{
+        //    if(Socket != null)
+        //        Socket.Dispose();
+        //}
 
         public void Dispose()
         {
-            Dispose(true);
+            if (Socket != null)
+                Socket.Dispose();
+
             GC.SuppressFinalize(this);
         }
     }    

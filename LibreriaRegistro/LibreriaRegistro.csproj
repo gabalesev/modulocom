@@ -7,8 +7,8 @@
     <ProjectGuid>{E98F4E55-2600-41AB-AE64-F6CAAF3DD28B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LoggerLib</RootNamespace>
-    <AssemblyName>LoggerLib</AssemblyName>
+    <RootNamespace>LibreriaRegistro</RootNamespace>
+    <AssemblyName>LibreriaRegistro</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -35,9 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LibreriaClases">
-      <HintPath>C:\SERVICIOS\dlls\LibreriaClases.dll</HintPath>
-    </Reference>
     <Reference Include="NLog">
       <HintPath>C:\SERVICIOS\dlls\NLog.dll</HintPath>
     </Reference>
@@ -54,6 +51,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="LibreriaRegistro.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

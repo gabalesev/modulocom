@@ -1,5 +1,4 @@
-﻿using LibreriaClases;
-using NLog;
+﻿using NLog;
 using NLog.Config;
 using NLog.Targets;
 using System;
@@ -13,13 +12,13 @@ namespace LibreriaRegistro
     /// </summary>
     public static class ModuloDeRegistro
     {
-        private static readonly Logger registrador = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Registrador = LogManager.GetCurrentClassLogger();
 
         private const string ENCABEZADO_16 = "Linea | 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  | 0123456789ABCDEF";
         private const char ENCABEZADO_LINEA = '=';
         private const int BASE_HEXA = 16;
 
-        private static LogLevel NIVEL_DE_REGISTRO;
+        private static LogLevel NivelDeRegistro;
 
         /// <summary>
         /// Inicializa el registrador
@@ -30,7 +29,7 @@ namespace LibreriaRegistro
         /// <param name="nombreArchivo"> Nombre base que tendrá el archivo de registro</param>
         public static void InicializaRegistrador(string directorioBase, int longitudMaxima, LogLevel nivelRegistroGlobal, string nombreArchivo)
         {
-            NIVEL_DE_REGISTRO = nivelRegistroGlobal;
+            NivelDeRegistro = nivelRegistroGlobal;
 
             if (!Directory.Exists(directorioBase))
             {
@@ -75,16 +74,16 @@ namespace LibreriaRegistro
             LogManager.Configuration.Reload();
 
             // Logueo solo si el nivel de log del mensaje es mayor o igual al configurado globalmente
-            if (nivelMensaje >= NIVEL_DE_REGISTRO)
+            if (nivelMensaje >= NivelDeRegistro)
             {
                 switch(nivelMensaje.Name)
                 {
-                    case "Trace": registrador.Trace(mensaje); break;
-                    case "Debug": registrador.Debug(mensaje); break;
-                    case "Info": registrador.Info(mensaje); break;
-                    case "Warn": registrador.Warn(mensaje); break;
-                    case "Error": registrador.Error(mensaje); break;
-                    case "Fatal": registrador.Fatal(mensaje); break;
+                    case "Trace": Registrador.Trace(mensaje); break;
+                    case "Debug": Registrador.Debug(mensaje); break;
+                    case "Info": Registrador.Info(mensaje); break;
+                    case "Warn": Registrador.Warn(mensaje); break;
+                    case "Error": Registrador.Error(mensaje); break;
+                    case "Fatal": Registrador.Fatal(mensaje); break;
                 }
             }
         }
@@ -100,7 +99,7 @@ namespace LibreriaRegistro
         {
             var buffer = byteToChar(bufferInBytes);
 
-            if (NIVEL_DE_REGISTRO.Equals(LogLevel.Off))
+            if (NivelDeRegistro == LogLevel.Off)
             {
                 // Esta configurado para no loguear nada
                 return;
